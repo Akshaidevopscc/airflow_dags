@@ -25,7 +25,7 @@ with DAG(
     start_date=datetime(2023, 11, 10),
     schedule_interval="0 0 * 1 *",
 ):
-     e1 = EmptyOperator(task_id="pre_dbt")
+    e1 = EmptyOperator(task_id="pre_dbt")
 
     dbt_tg = DbtTaskGroup(
         project_config=ProjectConfig(
@@ -44,3 +44,4 @@ with DAG(
     e2 = EmptyOperator(task_id="post_dbt")
 
     e1 >> dbt_tg >> e2
+    #end
