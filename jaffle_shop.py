@@ -8,12 +8,6 @@ from cosmos.profiles import PostgresUserPasswordProfileMapping
 
 from pathlib import Path
 
-CONNECTION_ID = "postgres_connection"
-SCHEMA_NAME = "public"
-DB_NAME = "postgres"
-POSTGRES_USER = "postgres"
-POSTGRES_PASSWORD = Variable.get("AIRFLOW_POSTGRES_PASSWORD")
-
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
     target_name="dev",
