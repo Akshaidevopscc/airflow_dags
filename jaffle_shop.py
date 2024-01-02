@@ -2,7 +2,7 @@ from pendulum import datetime
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.models import Variable
-from cosmos import DbtRunOperator, RenderConfig
+from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from cosmos.profiles import PostgresUserPasswordProfileMapping
 
@@ -11,7 +11,7 @@ from pathlib import Path
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
     target_name="dev",
-    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop/profiles.yml"
+    profiles_yml_filepath = "/appz/home/airflow/dags/dbt/jaffle_shop/profiles.yml"
 )
 
 with DAG(
@@ -21,45 +21,20 @@ with DAG(
 ):
     e1 = EmptyOperator(task_id="pre_dbt")
 
-    dbt_task_1 = DbtRunOperator(
+    dbt_tg = DbtTaskGroup(
         project_config=ProjectConfig(
-            Path("/appz/home/airflow/dags/dbt/jaffle_shop"),
-        ),
-        operator_args={"append_env": True},
+        Path("/appz/home/airflow/dags/dbt/jaffle_shop"),
+    ),
+        operator_args={
+            "append_env": True,
+        },
         profile_config=profile_config,
         execution_config=ExecutionConfig(
-            dbt_executable_path="/dbt_venv/bin/dbt",
-        ),
+        dbt_executable_path="/dbt_venv/bin/dbt",
+    ),
         default_args={"retries": 2},
-        task_id="dbt_task_1"
-    )
-
-    dbt_task_2 = DbtRunOperator(
-        project_config=ProjectConfig(
-            Path("/appz/home/airflow/dags/dbt/jaffle_shop"),
-        ),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(
-            dbt_executable_path="/dbt_venv/bin/dbt",
-        ),
-        default_args={"retries": 2},
-        task_id="dbt_task_2"
-    )
-
-    dbt_task_3 = DbtRunOperator(
-        project_config=ProjectConfig(
-            Path("/appz/home/airflow/dags/dbt/jaffle_shop"),
-        ),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(
-            dbt_executable_path="/dbt_venv/bin/dbt",
-        ),
-        default_args={"retries": 2},
-        task_id="dbt_task_3"
     )
 
     e2 = EmptyOperator(task_id="post_dbt")
 
-    e1 >> dbt_task_1 >> dbt_task_2 >> dbt_task_3 >> e2
+    e1 >> dbt_tg >> e2
