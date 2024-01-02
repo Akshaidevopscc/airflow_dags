@@ -21,8 +21,8 @@ with DAG(
 ):
     e1 = EmptyOperator(task_id="pre_dbt")
 
+    # DbtTaskGroup 1
     dbt_tg_1 = DbtTaskGroup(
-        task_id="dbt_tg_1",
         project_config=ProjectConfig(
             Path("/appz/home/airflow/dags/dbt/jaffle_shop"),
         ),
@@ -36,8 +36,8 @@ with DAG(
         default_args={"retries": 2},
     )
 
+    # DbtTaskGroup 2
     dbt_tg_2 = DbtTaskGroup(
-        task_id="dbt_tg_2",
         project_config=ProjectConfig(
             Path("/appz/home/airflow/dags/dbt/jaffle_shop"),
         ),
@@ -51,8 +51,8 @@ with DAG(
         default_args={"retries": 2},
     )
 
+    # DbtTaskGroup 3
     dbt_tg_3 = DbtTaskGroup(
-        task_id="dbt_tg_3",
         project_config=ProjectConfig(
             Path("/appz/home/airflow/dags/dbt/jaffle_shop"),
         ),
