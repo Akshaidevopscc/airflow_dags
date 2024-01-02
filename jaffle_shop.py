@@ -1,61 +1,64 @@
 from pendulum import datetime
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
-from cosmos import DbtTaskGroup
+from airflow.operators.python import PythonOperator
+from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
-
 from pathlib import Path
 
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
     target_name="dev",
-    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop/profiles.yml"
+    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop/profiles.yml",
 )
+
+def print_variable(**kwargs):
+    variable = kwargs['dag_run'].conf.get('payment_type')
+    print(variable)
 
 with DAG(
     dag_id="jaffle_shop_new",
     start_date=datetime(2023, 11, 10),
     schedule_interval="0 0 * 1 *",
 ) as dag:
-    # Pre-DBT tasks
-    pre_dbt = EmptyOperator(task_id="pre_dbt")
+    e1 = PythonOperator(
+        task_id="print_variables",
+        python_callable=print_variable,
+        provide_context=True,
+    )
 
-    # Seeds Task Group
     seeds_tg = DbtTaskGroup(
-        group_id="seeds_task_group",
+        task_id="seeds_tg",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
         operator_args={"append_env": True},
         profile_config=profile_config,
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
+        render_config=RenderConfig(select=["path:seeds/"]),
         default_args={"retries": 2},
-        sql_files=["seeds/raw_customers.sql", "seeds/raw_orders.sql", "seeds/raw_payments.sql"],
+        group_id="dbt_seeds_group"
     )
 
-    # Staging Task Group
-    staging_tg = DbtTaskGroup(
-        group_id="staging_task_group",
+    stg_tg = DbtTaskGroup(
+        task_id="stg_tg",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
         operator_args={"append_env": True},
         profile_config=profile_config,
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
+        render_config=RenderConfig(select=["path:models/staging/"]),
         default_args={"retries": 2},
-        sql_files=["staging/stg_customers.sql", "staging/stg_orders.sql", "staging/stg_payments.sql"],
+        group_id="dbt_stg_group"
     )
 
-    # Final Transformation Task Group
-    final_tg = DbtTaskGroup(
-        group_id="final_transformation_task_group",
+    dbt_tg = DbtTaskGroup(
+        task_id="dbt_tg",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
         operator_args={"append_env": True},
         profile_config=profile_config,
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
+        render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
         default_args={"retries": 2},
-        sql_files=["models/customers.sql", "models/orders.sql"],
     )
 
-    # Post-DBT tasks
-    post_dbt = EmptyOperator(task_id="post_dbt")
+    e2 = EmptyOperator(task_id="post_dbt")
 
-    # Define task dependencies
-    pre_dbt >> seeds_tg >> staging_tg >> final_tg >> post_dbt
-#
+    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
