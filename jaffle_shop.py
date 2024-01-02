@@ -11,7 +11,7 @@ from pathlib import Path
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
     target_name="dev",
-    profiles_yml_filepath = "/appz/home/airflow/dags/dbt/jaffle_shop/profiles.yml"
+    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop/profiles.yml"
 )
 
 with DAG(
@@ -21,20 +21,45 @@ with DAG(
 ):
     e1 = EmptyOperator(task_id="pre_dbt")
 
-    dbt_tg = DbtTaskGroup(
+    dbt_tg1 = DbtTaskGroup(
         project_config=ProjectConfig(
-        Path("/appz/home/airflow/dags/dbt/jaffle_shop"),
-    ),
-        operator_args={
-            "append_env": True,
-        },
+            Path("/appz/home/airflow/dags/dbt/jaffle_shop"),
+        ),
+        operator_args={"append_env": True},
         profile_config=profile_config,
         execution_config=ExecutionConfig(
-        dbt_executable_path="/dbt_venv/bin/dbt",
-    ),
+            dbt_executable_path="/dbt_venv/bin/dbt",
+        ),
         default_args={"retries": 2},
+        task_id_prefix="dbt_group_1_",
+    )
+
+    dbt_tg2 = DbtTaskGroup(
+        project_config=ProjectConfig(
+            Path("/appz/home/airflow/dags/dbt/jaffle_shop"),
+        ),
+        operator_args={"append_env": True},
+        profile_config=profile_config,
+        execution_config=ExecutionConfig(
+            dbt_executable_path="/dbt_venv/bin/dbt",
+        ),
+        default_args={"retries": 2},
+        task_id_prefix="dbt_group_2_",
+    )
+
+    dbt_tg3 = DbtTaskGroup(
+        project_config=ProjectConfig(
+            Path("/appz/home/airflow/dags/dbt/jaffle_shop"),
+        ),
+        operator_args={"append_env": True},
+        profile_config=profile_config,
+        execution_config=ExecutionConfig(
+            dbt_executable_path="/dbt_venv/bin/dbt",
+        ),
+        default_args={"retries": 2},
+        task_id_prefix="dbt_group_3_",
     )
 
     e2 = EmptyOperator(task_id="post_dbt")
 
-    e1 >> dbt_tg >> e2
+    e1 >> dbt_tg1 >> dbt_tg2 >> dbt_tg3 >> e2
