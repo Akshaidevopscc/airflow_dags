@@ -31,7 +31,7 @@ with DAG(
             dbt_executable_path="/dbt_venv/bin/dbt",
         ),
         default_args={"retries": 2},
-        task_id_prefix="dbt_group_1_",
+        task_id="dbt_group_1"
     )
 
     dbt_tg2 = DbtTaskGroup(
@@ -44,7 +44,7 @@ with DAG(
             dbt_executable_path="/dbt_venv/bin/dbt",
         ),
         default_args={"retries": 2},
-        task_id_prefix="dbt_group_2_",
+        task_id="dbt_group_2"
     )
 
     dbt_tg3 = DbtTaskGroup(
@@ -57,7 +57,7 @@ with DAG(
             dbt_executable_path="/dbt_venv/bin/dbt",
         ),
         default_args={"retries": 2},
-        task_id_prefix="dbt_group_3_",
+        task_id="dbt_group_3"
     )
 
     e2 = EmptyOperator(task_id="post_dbt")
