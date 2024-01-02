@@ -46,4 +46,3 @@ with DAG(
     # Define task dependencies
     pre_dbt >> dbt_tg1 >> post_dbt
     pre_dbt >> dbt_tg2 >> post_dbt
-#
