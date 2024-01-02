@@ -2,7 +2,7 @@ from pendulum import datetime
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.models import Variable
-from cosmos import DbtTaskGroup, RenderConfig
+from cosmos import DbtRunOperator, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from cosmos.profiles import PostgresUserPasswordProfileMapping
 
@@ -21,7 +21,7 @@ with DAG(
 ):
     e1 = EmptyOperator(task_id="pre_dbt")
 
-    dbt_tg1 = DbtTaskGroup(
+    dbt_task_1 = DbtRunOperator(
         project_config=ProjectConfig(
             Path("/appz/home/airflow/dags/dbt/jaffle_shop"),
         ),
@@ -31,10 +31,10 @@ with DAG(
             dbt_executable_path="/dbt_venv/bin/dbt",
         ),
         default_args={"retries": 2},
-        task_id="dbt_group_1"
+        task_id="dbt_task_1"
     )
 
-    dbt_tg2 = DbtTaskGroup(
+    dbt_task_2 = DbtRunOperator(
         project_config=ProjectConfig(
             Path("/appz/home/airflow/dags/dbt/jaffle_shop"),
         ),
@@ -44,10 +44,10 @@ with DAG(
             dbt_executable_path="/dbt_venv/bin/dbt",
         ),
         default_args={"retries": 2},
-        task_id="dbt_group_2"
+        task_id="dbt_task_2"
     )
 
-    dbt_tg3 = DbtTaskGroup(
+    dbt_task_3 = DbtRunOperator(
         project_config=ProjectConfig(
             Path("/appz/home/airflow/dags/dbt/jaffle_shop"),
         ),
@@ -57,9 +57,9 @@ with DAG(
             dbt_executable_path="/dbt_venv/bin/dbt",
         ),
         default_args={"retries": 2},
-        task_id="dbt_group_3"
+        task_id="dbt_task_3"
     )
 
     e2 = EmptyOperator(task_id="post_dbt")
 
-    e1 >> dbt_tg1 >> dbt_tg2 >> dbt_tg3 >> e2
+    e1 >> dbt_task_1 >> dbt_task_2 >> dbt_task_3 >> e2
