@@ -16,10 +16,10 @@ with DAG(
     start_date=datetime(2023, 11, 10),
     schedule_interval="0 0 * 1 *",
 ) as dag:
+
     e1 = EmptyOperator(task_id="pre_dbt")
 
     seeds_tg = DbtTaskGroup(
-        task_id="seeds_tg",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
         operator_args={"append_env": True},
         profile_config=profile_config,
@@ -30,7 +30,6 @@ with DAG(
     )
 
     stg_tg = DbtTaskGroup(
-        task_id="stg_tg",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
         operator_args={"append_env": True},
         profile_config=profile_config,
@@ -41,7 +40,6 @@ with DAG(
     )
 
     dbt_tg = DbtTaskGroup(
-        task_id="dbt_tg",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
         operator_args={"append_env": True},
         profile_config=profile_config,
@@ -53,3 +51,4 @@ with DAG(
     e2 = EmptyOperator(task_id="post_dbt")
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
+#
