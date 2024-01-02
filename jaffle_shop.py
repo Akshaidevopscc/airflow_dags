@@ -17,28 +17,45 @@ with DAG(
     start_date=datetime(2023, 11, 10),
     schedule_interval="0 0 * 1 *",
 ) as dag:
-
+    # Pre-DBT tasks
     pre_dbt = EmptyOperator(task_id="pre_dbt")
 
-    dbt_tg1 = DbtTaskGroup(
-        group_id="dbt_task_group_1",
+    # Seeds Task Group
+    seeds_tg = DbtTaskGroup(
+        group_id="seeds_task_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
         operator_args={"append_env": True},
         profile_config=profile_config,
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         default_args={"retries": 2},
+        sql_files=["seeds/raw_customers.sql", "seeds/raw_orders.sql", "seeds/raw_payments.sql"],
     )
 
-    dbt_tg2 = DbtTaskGroup(
-        group_id="dbt_task_group_2",
+    # Staging Task Group
+    staging_tg = DbtTaskGroup(
+        group_id="staging_task_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
         operator_args={"append_env": True},
         profile_config=profile_config,
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         default_args={"retries": 2},
+        sql_files=["staging/stg_customers.sql", "staging/stg_orders.sql", "staging/stg_payments.sql"],
     )
 
+    # Final Transformation Task Group
+    final_tg = DbtTaskGroup(
+        group_id="final_transformation_task_group",
+        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
+        operator_args={"append_env": True},
+        profile_config=profile_config,
+        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
+        default_args={"retries": 2},
+        sql_files=["models/customers.sql", "models/orders.sql"],
+    )
+
+    # Post-DBT tasks
     post_dbt = EmptyOperator(task_id="post_dbt")
 
-    pre_dbt >> dbt_tg1 >> post_dbt
-    pre_dbt >> dbt_tg2 >> post_dbt
+    # Define task dependencies
+    pre_dbt >> seeds_tg >> staging_tg >> final_tg >> post_dbt
+#
