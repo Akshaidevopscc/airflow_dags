@@ -16,10 +16,9 @@ with DAG(
     start_date=datetime(2023, 11, 10),
     schedule_interval="0 0 * 1 *",
 ) as dag:
-    # Pre-DBT tasks
+
     e1 = EmptyOperator(task_id="pre_dbt")
 
-    # Seeds Task Group
     seeds_tg = DbtTaskGroup(
         group_id="dbt_seeds_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
@@ -30,7 +29,6 @@ with DAG(
         default_args={"retries": 2},
     )
 
-    # Staging Task Group
     stg_tg = DbtTaskGroup(
         group_id="dbt_stg_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
@@ -41,7 +39,6 @@ with DAG(
         default_args={"retries": 2},
     )
 
-    # Final Transformation Task Group
     dbt_tg = DbtTaskGroup(
         group_id="dbt_final_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
@@ -52,8 +49,6 @@ with DAG(
         default_args={"retries": 2},
     )
 
-    # Post-DBT tasks
     e2 = EmptyOperator(task_id="post_dbt")
 
-    # Define task dependencies
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
