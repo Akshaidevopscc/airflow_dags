@@ -24,7 +24,6 @@ with DAG(
 
     # DBT Task Group 1
     dbt_tg1 = DbtTaskGroup(
-        task_id="dbt_task_group_1",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
         operator_args={"append_env": True},
         profile_config=profile_config,
@@ -34,7 +33,6 @@ with DAG(
 
     # DBT Task Group 2
     dbt_tg2 = DbtTaskGroup(
-        task_id="dbt_task_group_2",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
         operator_args={"append_env": True},
         profile_config=profile_config,
