@@ -4,7 +4,6 @@ from airflow.operators.empty import EmptyOperator
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
-from clear_task import task_clear
 
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
@@ -12,14 +11,10 @@ profile_config = ProfileConfig(
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
 )
 
-def on_failure_callback(context):
-    task_clear(profile="PRO", Dag="airflow_dags_akshai", dag_run_id=context['dag_run'].run_id, task_ids=["pre_dbt", "dbt_seeds_group", "dbt_stg_group", "dbt_final_group", "post_dbt"])
-
 with DAG(
     dag_id="airflow_dags_akshai",
     start_date=datetime(2023, 11, 10),
     schedule_interval="0 0 * 1 *",
-    on_failure_callback=on_failure_callback,
 ) as dag:
 
     e1 = EmptyOperator(task_id="pre_dbt")
@@ -57,4 +52,3 @@ with DAG(
     e2 = EmptyOperator(task_id="post_dbt")
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
-    ###
