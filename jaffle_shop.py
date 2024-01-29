@@ -8,11 +8,11 @@ from pathlib import Path
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
     target_name="dev",
-    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop/profiles.yml",
+    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
 )
 
 with DAG(
-    dag_id="jaffle_shop_new",
+    dag_id="airflow_dags_akshai",
     start_date=datetime(2023, 11, 10),
     schedule_interval="0 0 * 1 *",
 ) as dag:
@@ -21,7 +21,7 @@ with DAG(
 
     seeds_tg = DbtTaskGroup(
         group_id="dbt_seeds_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
+        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
         operator_args={"append_env": True},
         profile_config=profile_config,
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
@@ -31,7 +31,7 @@ with DAG(
 
     stg_tg = DbtTaskGroup(
         group_id="dbt_stg_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
+        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
         operator_args={"append_env": True},
         profile_config=profile_config,
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
@@ -41,7 +41,7 @@ with DAG(
 
     dbt_tg = DbtTaskGroup(
         group_id="dbt_final_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop")),
+        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
         operator_args={"append_env": True},
         profile_config=profile_config,
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
