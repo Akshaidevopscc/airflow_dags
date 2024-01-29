@@ -1,15 +1,20 @@
 from pendulum import datetime
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
+from airflow.operators.python_operator import PythonOperator
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
+from clear_task import task_clear
 
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
     target_name="dev",
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
 )
+
+def run_clear_task(**kwargs):
+    task_clear()
 
 with DAG(
     dag_id="airflow_dags_akshai",
@@ -18,6 +23,13 @@ with DAG(
 ) as dag:
 
     e1 = EmptyOperator(task_id="pre_dbt")
+    e1_trigger = PythonOperator(
+        task_id='trigger_clear_task_pre_dbt',
+        python_callable=run_clear_task,
+        provide_context=True,
+        op_args=[],
+        op_kwargs={}
+    )
 
     seeds_tg = DbtTaskGroup(
         group_id="dbt_seeds_group",
@@ -27,6 +39,13 @@ with DAG(
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:seeds/"]),
         default_args={"retries": 2},
+    )
+    seeds_trigger = PythonOperator(
+        task_id='trigger_clear_task_seeds',
+        python_callable=run_clear_task,
+        provide_context=True,
+        op_args=[],
+        op_kwargs={}
     )
 
     stg_tg = DbtTaskGroup(
@@ -38,6 +57,13 @@ with DAG(
         render_config=RenderConfig(select=["path:models/staging/"]),
         default_args={"retries": 2},
     )
+    stg_trigger = PythonOperator(
+        task_id='trigger_clear_task_stg',
+        python_callable=run_clear_task,
+        provide_context=True,
+        op_args=[],
+        op_kwargs={}
+    )
 
     dbt_tg = DbtTaskGroup(
         group_id="dbt_final_group",
@@ -48,7 +74,14 @@ with DAG(
         render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
         default_args={"retries": 2},
     )
+    dbt_trigger = PythonOperator(
+        task_id='trigger_clear_task_dbt',
+        python_callable=run_clear_task,
+        provide_context=True,
+        op_args=[],
+        op_kwargs={}
+    )
 
     e2 = EmptyOperator(task_id="post_dbt")
 
-    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
+    e1 >> e1_trigger >> seeds_tg >> seeds_trigger >> stg_tg >> stg_trigger >> dbt_tg >> dbt_trigger >> e2
