@@ -9,7 +9,7 @@ sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
 from clear_task import task_clear
 
 profile_config = ProfileConfig(
-    profile_name="jaffle_shop",
+    profile_name="jaffle_shop_akshai",
     target_name="dev",
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
 )
