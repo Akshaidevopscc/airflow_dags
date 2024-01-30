@@ -7,8 +7,6 @@ from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
 from clear_task import task_clear
 
-sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
-
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
     target_name="dev",
