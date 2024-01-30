@@ -5,7 +5,10 @@ from airflow.operators.empty import EmptyOperator
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
+from airflow.dags.airflow_dags_akshai.clear_task import task_clear
 from clear_task import task_clear
+
+sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
 
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
