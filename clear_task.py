@@ -1,61 +1,75 @@
-from pendulum import datetime
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from cosmos import DbtTaskGroup, RenderConfig
-from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
-from pathlib import Path
-import sys
-sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
-from clear_task import task_clear
+import json
+import requests
+import getpass
+import argparse
 
-profile_config = ProfileConfig(
-    profile_name="jaffle_shop",
-    target_name="dev",
-    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
-)
+def task_clear():
+    def export_credential(path):
+        domain = input("Domain: ")
+        username = input("UserName: ")
+        password = getpass.getpass("Password: ")
+        credentials = {
+            "Username": username,
+            "Password": password,
+            "Domain": domain
+        }
+        with open(path, 'w') as file:
+            json.dump(credentials, file)
 
-def on_failure_callback(context):
-    task_clear(profile="PRO", Dag="airflow_dags_akshai", dag_run_id=context['dag_run'].run_id, task_ids=["pre_dbt", "dbt_seeds_group", "dbt_stg_group", "dbt_final_group", "post_dbt"])
+    def clear_task_instances(profile, dag_id, dag_run_id, task_ids):
+        cred_path = f"{profile}.json"
 
-with DAG(
-    dag_id="airflow_dags_akshai",
-    start_date=datetime(2023, 11, 10),
-    schedule_interval="0 0 * 1 *",
-    on_failure_callback=on_failure_callback,
-) as dag:
+        try:
+            with open(cred_path) as file:
+                file_content = file.read()
+                credentials = json.loads(file_content)
+        except Exception as e:
+            print(f"Error: {e}")
+            export_credential(cred_path)
+            print("Credentials exported. Rerun the script.")
+            exit()
 
-    e1 = EmptyOperator(task_id="pre_dbt")
+        username = credentials["Username"]
+        password = credentials["Password"]
+        domain = credentials["Domain"]
 
-    seeds_tg = DbtTaskGroup(
-        group_id="dbt_seeds_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(select=["path:seeds/"]),
-        default_args={"retries": 2},
-    )
+        uri = f"https://{domain}/api/v1/dags/{dag_id}/clearTaskInstances"
+        
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "dry_run": False,
+            "task_ids": task_ids,
+            "dag_run_id": dag_run_id,
+            "only_failed": True,
+            "only_running": False,
+            "include_subdags": True,
+            "include_parentdag": True,
+            "reset_dag_runs": True,
+            "include_upstream": True,
+            "include_downstream": True,
+            "include_future": False,
+            "include_past": False
+        }
 
-    stg_tg = DbtTaskGroup(
-        group_id="dbt_stg_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(select=["path:models/staging/"]),
-        default_args={"retries": 2},
-    )
+        response = requests.post(uri, auth=(username, password), headers=headers, json=data)
 
-    dbt_tg = DbtTaskGroup(
-        group_id="dbt_final_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
-        default_args={"retries": 2},
-    )
+        if response.status_code == 200:
+            print("Task instances cleared successfully.")
+        else:
+            print(f"Failed to clear task instances. Status Code: {response.status_code}")
+            print(response.text)
 
-    e2 = EmptyOperator(task_id="post_dbt")
+    parser = argparse.ArgumentParser(description="Clear Task Instances")
+    parser.add_argument("-profile", required=True, help="Profile")
+    parser.add_argument("-Dag", required=True, help="DagId")
+    parser.add_argument("-dag_run_id", required=True, help="dag_run_id")
+    parser.add_argument("-task_ids", nargs='+', required=True, help="List of task IDs")
+    args = parser.parse_args()
 
-    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
+    clear_task_instances(args.profile, args.Dag, args.dag_run_id, args.task_ids)
+
+if __name__ == "__main__":
+    task_clear()
