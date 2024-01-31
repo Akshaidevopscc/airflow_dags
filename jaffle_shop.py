@@ -48,7 +48,7 @@ def check_and_clear_task():
             print(f"Failed to retrieve DAG Run details. Status Code: {response.status_code}")
             return None
 
-    while True:
+'''    while True:
         dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00", "PRO")
         if dag_run_status == "success":
             print("DAG run completed successfully.")
@@ -57,7 +57,7 @@ def check_and_clear_task():
         elif dag_run_status == "failed":
             print("DAG run failed. Initiating task clearing...")
             task_clear(profile="PRO", Dag="airflow_dags_akshai", dag_run_id="scheduled__2024-01-29T00:00:00+00:00", task_ids=["pre_dbt", "dbt_seeds_group", "dbt_final_group", "post_dbt"])
-            break
+            break'''
 
 with DAG(
     dag_id="airflow_dags_akshai",
