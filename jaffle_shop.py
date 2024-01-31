@@ -1,6 +1,7 @@
 from pendulum import datetime
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
+from airflow.operators.python_operator import PythonOperator
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
@@ -17,40 +18,63 @@ profile_config = ProfileConfig(
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
 )
 
-def check_dag_status(dag_id, dag_run_id, profile):
-    cred_path = f"{profile}.json"
-    try:
-        with open(cred_path) as file:
-            credentials = json.load(file)
-    except Exception as e:
-        print(f"Error: {e}")
-        print("Credentials not found.")
-        return
+# Define a function to check DAG status and initiate task clearing
+def check_and_clear_task():
+    def check_dag_status(dag_id, dag_run_id, profile):
+        cred_path = f"{profile}.json"
+        try:
+            with open(cred_path) as file:
+                credentials = json.load(file)
+        except Exception as e:
+            print(f"Error: {e}")
+            print("Credentials not found.")
+            return
 
-    username = credentials["Username"]
-    password = credentials["Password"]
-    domain = credentials["Domain"]
+        username = credentials["Username"]
+        password = credentials["Password"]
+        domain = credentials["Domain"]
 
-    uri = f"https://{domain}/api/v1/dags/{dag_id}/dagRuns/{dag_run_id}"
+        uri = f"https://{domain}/api/v1/dags/{dag_id}/dagRuns/{dag_run_id}"
 
-    headers = {
-        "Content-Type": "application/json"
-    }
+        headers = {
+            "Content-Type": "application/json"
+        }
 
-    response = requests.get(uri, auth=(username, password), headers=headers)
+        response = requests.get(uri, auth=(username, password), headers=headers)
 
-    if response.status_code == 200:
-        dag_run_details = response.json()
-        return dag_run_details.get("state")
-    else:
-        print(f"Failed to retrieve DAG Run details. Status Code: {response.status_code}")
-        return None
+        if response.status_code == 200:
+            dag_run_details = response.json()
+            return dag_run_details.get("state")
+        else:
+            print(f"Failed to retrieve DAG Run details. Status Code: {response.status_code}")
+            return None
 
+    while True:
+        dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00", "PRO")
+        if dag_run_status == "success":
+            print("DAG run completed successfully.")
+            break
+        elif dag_run_status == "failed":
+            print("DAG run failed. Initiating task clearing...")
+            task_clear(profile="PRO", Dag="airflow_dags_akshai", dag_run_id="scheduled__2024-01-29T00:00:00+00:00", task_ids=["pre_dbt", "dbt_seeds_group", "dbt_final_group", "post_dbt"])
+            break
+        else:
+            print("DAG run is still in progress. Waiting for 10 seconds before checking again...")
+            time.sleep(10)
+
+# Define the DAG
 with DAG(
     dag_id="airflow_dags_akshai",
     start_date=datetime(2023, 11, 10),
     schedule_interval="0 0 * 1 *",
 ) as dag:
+
+    # Add a PythonOperator to execute the check_and_clear_task function
+    check_and_clear_task_op = PythonOperator(
+        task_id="check_and_clear_task",
+        python_callable=check_and_clear_task,
+        dag=dag,
+    )
 
     e1 = EmptyOperator(task_id="pre_dbt")
 
@@ -88,15 +112,5 @@ with DAG(
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
 
-while True:
-    dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00", "PRO")
-    if dag_run_status == "success":
-        print("DAG run completed successfully.")
-        break
-    elif dag_run_status == "failed":
-        print("DAG run failed. Initiating task clearing...")
-        task_clear(profile="PRO", Dag="airflow_dags_akshai", dag_run_id="scheduled__2024-01-29T00:00:00+00:00", task_ids=["pre_dbt", "dbt_seeds_group", "dbt_final_group", "post_dbt"])
-        break
-    else:
-        print("DAG run is still in progress. Waiting for 10 seconds before checking again...")
-        time.sleep(10)
+    # Set dependencies
+    check_and_clear_task_op >> e1
