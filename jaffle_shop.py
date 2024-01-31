@@ -18,7 +18,6 @@ profile_config = ProfileConfig(
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
 )
 
-# Define a function to check DAG status and initiate task clearing
 def check_and_clear_task():
     def check_dag_status(dag_id, dag_run_id, profile):
         cred_path = f"{profile}.json"
@@ -62,19 +61,11 @@ def check_and_clear_task():
             print("DAG run is still in progress. Waiting for 10 seconds before checking again...")
             time.sleep(10)
 
-# Define the DAG
 with DAG(
     dag_id="airflow_dags_akshai",
     start_date=datetime(2023, 11, 10),
     schedule_interval="0 0 * 1 *",
 ) as dag:
-
-    # Add a PythonOperator to execute the check_and_clear_task function
-    check_and_clear_task_op = PythonOperator(
-        task_id="check_and_clear_task",
-        python_callable=check_and_clear_task,
-        dag=dag,
-    )
 
     e1 = EmptyOperator(task_id="pre_dbt")
 
@@ -110,7 +101,9 @@ with DAG(
 
     e2 = EmptyOperator(task_id="post_dbt")
 
-    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
+    check_and_clear_task_op = PythonOperator(
+        task_id="check_and_clear_task",
+        python_callable=check_and_clear_task,
+    )
 
-    # Set dependencies
-    check_and_clear_task_op >> e1
+    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> check_and_clear_task_op
