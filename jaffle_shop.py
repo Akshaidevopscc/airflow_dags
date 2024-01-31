@@ -1,4 +1,3 @@
-import sys
 from pendulum import datetime
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
@@ -8,6 +7,7 @@ from pathlib import Path
 import requests
 import time
 import json
+import sys
 sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
 from clear_task import task_clear
 
