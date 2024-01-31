@@ -7,7 +7,6 @@ from pathlib import Path
 import requests
 import time
 import json
-sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
 from clear_task import task_clear
 
 profile_config = ProfileConfig(
