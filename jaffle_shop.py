@@ -53,6 +53,7 @@ def check_and_clear_task():
         if dag_run_status == "running":
             print("DAG run completed successfully.")
             break
+            
         elif dag_run_status == "failed":
             print("DAG run failed. Initiating task clearing...")
             task_clear(profile="PRO", Dag="airflow_dags_akshai", dag_run_id="scheduled__2024-01-29T00:00:00+00:00", task_ids=["pre_dbt", "dbt_seeds_group", "dbt_final_group", "post_dbt"])
