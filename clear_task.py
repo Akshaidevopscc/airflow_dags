@@ -4,41 +4,20 @@ import getpass
 import argparse
 
 def task_clear():
-    def export_credential(path):
-        domain = input("Domain: ")
-        username = input("UserName: ")
-        password = getpass.getpass("Password: ")
-        credentials = {
-            "Username": username,
-            "Password": password,
-            "Domain": domain
-        }
-        with open(path, 'w') as file:
-            json.dump(credentials, file)
 
     def clear_task_instances(profile, dag_id, dag_run_id, task_ids):
         cred_path = f"{profile}.json"
 
-        try:
-            with open(cred_path) as file:
-                file_content = file.read()
-                credentials = json.loads(file_content)
-        except Exception as e:
-            print(f"Error: {e}")
-            export_credential(cred_path)
-            print("Credentials exported. Rerun the script.")
-            exit()
-
-        username = credentials["Username"]
-        password = credentials["Password"]
-        domain = credentials["Domain"]
+        username = "apitest"
+        password = "mnbvcxz"
+        domain = "mpmathew-test-poc.03907124.lowtouch.cloud"
 
         uri = f"https://{domain}/api/v1/dags/{dag_id}/clearTaskInstances"
-        
+
         headers = {
             "Content-Type": "application/json"
         }
-        
+
         data = {
             "dry_run": False,
             "task_ids": task_ids,
