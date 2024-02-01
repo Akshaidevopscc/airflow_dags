@@ -20,18 +20,9 @@ profile_config = ProfileConfig(
 
 def check_and_clear_task():
     def check_dag_status(dag_id, dag_run_id, profile):
-        cred_path = f"{profile}.json"
-        try:
-            with open(cred_path) as file:
-                credentials = json.load(file)
-        except Exception as e:
-            print(f"Error: {e}")
-            print("Credentials not found.")
-            return
-
-        username = credentials["Username"]
-        password = credentials["Password"]
-        domain = credentials["Domain"]
+        username = "apitest"
+        password = "mnbvcxz"
+        domain = "mpmathew-test-poc.03907124.lowtouch.cloud"
 
         uri = f"https://{domain}/api/v1/dags/{dag_id}/dagRuns/{dag_run_id}"
 
