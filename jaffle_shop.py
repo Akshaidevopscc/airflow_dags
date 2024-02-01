@@ -20,9 +20,18 @@ profile_config = ProfileConfig(
 
 def check_and_clear_task():
     def check_dag_status(dag_id, dag_run_id, profile):
-        username = "apitest"
-        password = "mnbvcxz"
-        domain = "mpmathew-test-poc.03907124.lowtouch.cloud"
+        cred_path = f"{profile}.json"
+        try:
+            with open(cred_path) as file:
+                credentials = json.load(file)
+        except Exception as e:
+            print(f"Error: {e}")
+            print("Credentials not found.")
+            return
+
+        username = credentials["Username"]
+        password = credentials["Password"]
+        domain = credentials["Domain"]
 
         uri = f"https://{domain}/api/v1/dags/{dag_id}/dagRuns/{dag_run_id}"
 
@@ -40,14 +49,14 @@ def check_and_clear_task():
             return None
 
     while True:
-        dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00", profile_config)
-        if dag_run_status in ["failed", "success"]:
+        dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00", "PRO")
+        if dag_run_status in ["running", "success"]:
             print("DAG run completed successfully.")
             break
-
-        elif dag_run_status == "running":
+            
+        elif dag_run_status == "failed":
             print("DAG run failed. Initiating task clearing...")
-            task_clear(Dag="airflow_dags_akshai", dag_run_id="scheduled__2024-01-29T00:00:00+00:00", task_ids=["pre_dbt", "dbt_seeds_group", "dbt_final_group", "post_dbt"])
+            task_clear(profile="PRO", Dag="airflow_dags_akshai", dag_run_id="scheduled__2024-01-29T00:00:00+00:00", task_ids=["pre_dbt", "dbt_seeds_group", "dbt_final_group", "post_dbt"])
             break
 
 with DAG(
