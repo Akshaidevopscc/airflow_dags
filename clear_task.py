@@ -33,12 +33,9 @@ def task_clear(profile, username, password, domain, dag_id, dag_run_id, task_ids
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Clear Task Instances")
     parser.add_argument("-profile", required=True, help="Profile")
-    parser.add_argument("-username", required=True, help="Username")
-    parser.add_argument("-password", required=True, help="Password")
-    parser.add_argument("-domain", required=True, help="Domain")
     parser.add_argument("-Dag", required=True, help="DagId")
     parser.add_argument("-dag_run_id", required=True, help="dag_run_id")
     parser.add_argument("-task_ids", nargs='+', required=True, help="List of task IDs")
     args = parser.parse_args()
 
-    task_clear(args.profile, args.username, args.password, args.domain, args.Dag, args.dag_run_id, args.task_ids)
+    task_clear(args.profile, "apitest", "mnbvcxz", "mpmathew-test-poc.03907124.lowtouch.cloud", args.Dag, args.dag_run_id, args.task_ids)
