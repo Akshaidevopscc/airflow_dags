@@ -11,6 +11,7 @@ import time
 import sys
 sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
 from clear_task import task_clear
+PRO_JSON_PATH = Path(__file__).parent / "PRO.json"
 
 def load_credentials_from_json(json_file):
     with open(json_file) as file:
