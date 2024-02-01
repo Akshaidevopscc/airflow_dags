@@ -34,11 +34,11 @@ def task_clear():
         domain = credentials["Domain"]
 
         uri = f"https://{domain}/api/v1/dags/{dag_id}/clearTaskInstances"
-        
+
         headers = {
             "Content-Type": "application/json"
         }
-        
+
         data = {
             "dry_run": False,
             "task_ids": task_ids,
