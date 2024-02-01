@@ -19,25 +19,30 @@ profile_config = ProfileConfig(
 )
 
 def check_and_clear_task():
-    def check_dag_status(dag_id, dag_run_id, profile):
+    def read_credentials_from_file(profile):
         cred_path = f"{profile}.json"
         try:
             with open(cred_path) as file:
                 credentials = json.load(file)
+                return credentials
         except Exception as e:
             print(f"Error: {e}")
             print("Credentials not found.")
-            return
+            return None
 
-        username = credentials["Username"]
-        password = credentials["Password"]
-        domain = credentials["Domain"]
+    credentials = read_credentials_from_file("PRO")
 
+    if credentials is None:
+        print("Credentials not found. Task cannot proceed.")
+        return
+
+    username = credentials["Username"]
+    password = credentials["Password"]
+    domain = credentials["Domain"]
+
+    def check_dag_status(dag_id, dag_run_id, profile):
         uri = f"https://{domain}/api/v1/dags/{dag_id}/dagRuns/{dag_run_id}"
-
-        headers = {
-            "Content-Type": "application/json"
-        }
+        headers = {"Content-Type": "application/json"}
 
         response = requests.get(uri, auth=(username, password), headers=headers)
 
@@ -53,7 +58,6 @@ def check_and_clear_task():
         if dag_run_status in ["running", "success"]:
             print("DAG run completed successfully.")
             break
-            
         elif dag_run_status == "failed":
             print("DAG run failed. Initiating task clearing...")
             task_clear(profile="PRO", Dag="airflow_dags_akshai", dag_run_id="scheduled__2024-01-29T00:00:00+00:00", task_ids=["pre_dbt", "dbt_seeds_group", "dbt_final_group", "post_dbt"])
