@@ -12,7 +12,11 @@ import sys
 sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
 from clear_task import task_clear
 
-def check_and_clear_task(profile, username, password, domain):
+USERNAME = "apitest"
+PASSWORD = "mnbvcxz"
+DOMAIN = "mpmathew-test-poc.03907124.lowtouch.cloud"
+
+def check_and_clear_task():
     def check_dag_status(dag_id, dag_run_id, username, password, domain):
         uri = f"https://{domain}/api/v1/dags/{dag_id}/dagRuns/{dag_run_id}"
         headers = {"Content-Type": "application/json"}
@@ -25,13 +29,13 @@ def check_and_clear_task(profile, username, password, domain):
             return None
 
     while True:
-        dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00", username, password, domain)
+        dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00", USERNAME, PASSWORD, DOMAIN)
         if dag_run_status in ["running", "success"]:
             print("DAG run completed successfully.")
             break
         elif dag_run_status == "failed":
             print("DAG run failed. Initiating task clearing...")
-            task_clear(profile=profile, Dag="airflow_dags_akshai", dag_run_id="scheduled__2024-01-29T00:00:00+00:00", task_ids=["pre_dbt", "dbt_seeds_group", "dbt_final_group", "post_dbt"])
+            task_clear(profile="PRO", username=USERNAME, password=PASSWORD, domain=DOMAIN, Dag="airflow_dags_akshai", dag_run_id="scheduled__2024-01-29T00:00:00+00:00", task_ids=["pre_dbt", "dbt_seeds_group", "dbt_final_group", "post_dbt"])
             break
 
 profile_config = ProfileConfig(
@@ -83,7 +87,6 @@ with DAG(
     check_and_clear_task_op = PythonOperator(
         task_id="check_and_clear_task",
         python_callable=check_and_clear_task,
-        op_args=["PRO", "apitest", "mnbvcxz", "mpmathew-test-poc.03907124.lowtouch.cloud"],
     )
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> check_and_clear_task_op
