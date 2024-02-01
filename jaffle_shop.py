@@ -12,35 +12,11 @@ import sys
 sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
 from clear_task import task_clear
 
-profile_config = ProfileConfig(
-    profile_name="jaffle_shop",
-    target_name="dev",
-    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
-)
-
-def check_and_clear_task():
-    def check_dag_status(dag_id, dag_run_id, profile):
-        cred_path = f"{profile}.json"
-        try:
-            with open(cred_path) as file:
-                credentials = json.load(file)
-        except Exception as e:
-            print(f"Error: {e}")
-            print("Credentials not found.")
-            return
-
-        username = credentials["Username"]
-        password = credentials["Password"]
-        domain = credentials["Domain"]
-
+def check_and_clear_task(profile, username, password, domain):
+    def check_dag_status(dag_id, dag_run_id, username, password, domain):
         uri = f"https://{domain}/api/v1/dags/{dag_id}/dagRuns/{dag_run_id}"
-
-        headers = {
-            "Content-Type": "application/json"
-        }
-
+        headers = {"Content-Type": "application/json"}
         response = requests.get(uri, auth=(username, password), headers=headers)
-
         if response.status_code == 200:
             dag_run_details = response.json()
             return dag_run_details.get("state")
@@ -49,15 +25,20 @@ def check_and_clear_task():
             return None
 
     while True:
-        dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00", "PRO")
+        dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00", username, password, domain)
         if dag_run_status in ["running", "success"]:
             print("DAG run completed successfully.")
             break
-
         elif dag_run_status == "failed":
             print("DAG run failed. Initiating task clearing...")
-            task_clear(profile="PRO", Dag="airflow_dags_akshai", dag_run_id="scheduled__2024-01-29T00:00:00+00:00", task_ids=["pre_dbt", "dbt_seeds_group", "dbt_final_group", "post_dbt"])
+            task_clear(profile=profile, Dag="airflow_dags_akshai", dag_run_id="scheduled__2024-01-29T00:00:00+00:00", task_ids=["pre_dbt", "dbt_seeds_group", "dbt_final_group", "post_dbt"])
             break
+
+profile_config = ProfileConfig(
+    profile_name="jaffle_shop",
+    target_name="dev",
+    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
+)
 
 with DAG(
     dag_id="airflow_dags_akshai",
@@ -102,6 +83,7 @@ with DAG(
     check_and_clear_task_op = PythonOperator(
         task_id="check_and_clear_task",
         python_callable=check_and_clear_task,
+        op_args=["PRO", "apitest", "mnbvcxz", "mpmathew-test-poc.03907124.lowtouch.cloud"],
     )
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> check_and_clear_task_op
