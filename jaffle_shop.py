@@ -11,6 +11,7 @@ import json
 import sys
 sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
 from clear_task import task_clear
+PRO_JSON_PATH = Path(__file__).parent / "PRO.json"
 
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
