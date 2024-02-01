@@ -30,10 +30,10 @@ def check_and_clear_task():
 
     while True:
         dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00", USERNAME, PASSWORD, DOMAIN)
-        if dag_run_status in ["running", "success"]:
+        if dag_run_status in ["failed", "failed"]:
             print("DAG run completed successfully.")
             break
-        elif dag_run_status == "failed":
+        elif dag_run_status in ["success", "success"]:
             print("DAG run failed. Initiating task clearing...")
             task_clear(profile="PRO", username=USERNAME, password=PASSWORD, domain=DOMAIN, Dag="airflow_dags_akshai", dag_run_id="scheduled__2024-01-29T00:00:00+00:00", task_ids=["pre_dbt", "dbt_seeds_group", "dbt_final_group", "post_dbt"])
             break
