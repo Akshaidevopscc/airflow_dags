@@ -1,3 +1,4 @@
+import json
 from pendulum import datetime
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
@@ -7,16 +8,23 @@ from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
 import requests
 import time
-import json
 import sys
 sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
 from clear_task import task_clear
-PRO_JSON_PATH = Path(__file__).parent / "PRO.json"
+
+def load_credentials_from_json(json_file):
+    with open(json_file) as file:
+        return json.load(file)
+
+profile_credentials = load_credentials_from_json("PRO.json")
 
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
     target_name="dev",
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
+    username=profile_credentials["Username"],
+    password=profile_credentials["Password"],
+    domain=profile_credentials["Domain"]
 )
 
 def check_and_clear_task():
@@ -51,7 +59,7 @@ def check_and_clear_task():
 
     while True:
         dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00", "PRO")
-        if dag_run_status in ["running", "success", None]:
+        if dag_run_status in ["running", "success"]:
             print("DAG run completed successfully.")
             break
             
