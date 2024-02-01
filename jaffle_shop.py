@@ -40,7 +40,7 @@ def check_and_clear_task():
             return None
 
     while True:
-        dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00")
+        dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00", profile_config)
         if dag_run_status in ["failed", "success"]:
             print("DAG run completed successfully.")
             break
