@@ -16,7 +16,9 @@ profile_config = ProfileConfig(
 )
 
 def clear_successful_tasks(target_dag_id, target_dag_run_id):
+
     with create_session() as session:
+        # Query to find the specified DagRun
         dag_run = session.query(DagRun).filter(
             DagRun.dag_id == target_dag_id,
             DagRun.run_id == target_dag_run_id
@@ -24,7 +26,7 @@ def clear_successful_tasks(target_dag_id, target_dag_run_id):
         
         if not dag_run:
             raise ValueError(f'DAGRun not found for DAG ID {target_dag_id} and Run ID {target_dag_run_id}')
-
+            
         successful_task_instances = session.query(TaskInstance).filter(
             TaskInstance.dag_id == target_dag_id,
             TaskInstance.run_id == target_dag_run_id,
@@ -32,8 +34,12 @@ def clear_successful_tasks(target_dag_id, target_dag_run_id):
         ).all()
         
         for ti in successful_task_instances:
-            ti.clear()
-            session.add(ti)
+            ti.dag.clear_task_instances(
+                start_date=dag_run.start_date,
+                end_date=dag_run.end_date,
+                state=State.SUCCESS,
+                session=session
+            )
 
 with DAG(
     dag_id="airflow_dags_akshai",
