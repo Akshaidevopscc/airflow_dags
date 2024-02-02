@@ -1,5 +1,5 @@
 from airflow import DAG
-from airflow.models import DagRun, TaskInstance
+from airflow.models import TaskInstance
 from airflow.utils.session import create_session
 from airflow.utils.state import State
 from datetime import datetime
@@ -15,33 +15,22 @@ profile_config = ProfileConfig(
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
 )
 
-def clear_successful_tasks(target_dag_id, target_dag_run_id):
+def clear_successful_tasks(dag_id, dag_run_id):
     """
     Clears successful tasks for a specific DAG run.
-    :param target_dag_id: The DAG ID of the tasks to clear.
-    :param target_dag_run_id: The DAG run ID of the tasks to clear.
+    :param dag_id: The DAG ID of the tasks to clear.
+    :param dag_run_id: The DAG run ID of the tasks to clear.
     """
     with create_session() as session:
-        # Query to find the specified DagRun
-        dag_run = session.query(DagRun).filter(
-            DagRun.dag_id == target_dag_id,
-            DagRun.run_id == target_dag_run_id
-        ).first()
-        
-        if not dag_run:
-            raise ValueError(f'DAGRun not found for DAG ID {target_dag_id} and Run ID {target_dag_run_id}')
-
-        # Query to find the TaskInstances associated with the DagRun
-        successful_task_instances = session.query(TaskInstance).filter(
-            TaskInstance.dag_id == target_dag_id,
-            TaskInstance.run_id == target_dag_run_id,
+        ti_list = session.query(TaskInstance).filter(
+            TaskInstance.dag_id == dag_id,
+            TaskInstance.run_id == dag_run_id,
             TaskInstance.state == State.SUCCESS
         ).all()
-        
-        for ti in successful_task_instances:
-            ti.task.dag.clear_task_instances(
-                start_date=dag_run.start_date,
-                end_date=dag_run.end_date,
+        for ti in ti_list:
+            ti.dag.clear_task_instances(
+                start_date=ti.execution_date,
+                end_date=ti.end_date,
                 state=State.SUCCESS,
                 session=session
             )
@@ -90,8 +79,8 @@ with DAG(
     clear_successful_tasks_op = PythonOperator(
         task_id="clear_successful_tasks",
         python_callable=clear_successful_tasks,
-        op_kwargs={"target_dag_id": "airflow_dags_akshai", "target_dag_run_id": "scheduled__2024-01-30T00:00:00+00:00"},
+        op_kwargs={"dag_id": "airflow_dags_akshai", "dag_run_id": "scheduled__2024-01-30T00:00:00+00:00"},
     )
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> clear_successful_tasks_op
-#
+##
