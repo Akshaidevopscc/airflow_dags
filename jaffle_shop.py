@@ -1,7 +1,6 @@
 from airflow import DAG
-from airflow.models import DagRun, TaskInstance
+from airflow.models import TaskInstance
 from airflow.utils.session import create_session
-from airflow.utils.state import State
 from datetime import datetime
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python_operator import PythonOperator
@@ -15,25 +14,21 @@ profile_config = ProfileConfig(
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
 )
 
-def clear_successful_tasks(target_dag_id, target_dag_run_id):
-    with create_session() as session:
-        dag_run = session.query(DagRun).filter(
-            DagRun.dag_id == target_dag_id,
-            DagRun.run_id == target_dag_run_id
-        ).first()
-        
-        if not dag_run:
-            raise ValueError(f'DAGRun not found for DAG ID {target_dag_id} and Run ID {target_dag_run_id}')
+def clear_failed_tasks(dag_id, dag_run_id):
 
-        successful_task_instances = session.query(TaskInstance).filter(
-            TaskInstance.dag_id == target_dag_id,
-            TaskInstance.run_id == target_dag_run_id,
-            TaskInstance.state == State.success
+    dag = DAG(dag_id)
+    with create_session() as session:
+        ti_list = session.query(TaskInstance).filter(
+            TaskInstance.dag_id == dag_id,
+            TaskInstance.run_id == dag_run_id,
+            TaskInstance.state == "success"
         ).all()
-        
-        for ti in successful_task_instances:
-            ti.clear()
-            session.add(ti)
+        for ti in ti_list:
+            dag.clear(
+                start_date=ti.execution_date,
+                end_date=ti.end_date,
+                session=session
+            )
 
 with DAG(
     dag_id="airflow_dags_akshai",
@@ -75,10 +70,10 @@ with DAG(
 
     e2 = EmptyOperator(task_id="post_dbt")
 
-    clear_successful_tasks_op = PythonOperator(
-        task_id="clear_successful_tasks",
-        python_callable=clear_successful_tasks,
-        op_kwargs={"target_dag_id": "airflow_dags_akshai", "target_dag_run_id": "scheduled__2024-01-30T00:00:00+00:00"},
+    clear_failed_tasks_op = PythonOperator(
+        task_id="clear_failed_tasks",
+        python_callable=clear_failed_tasks,
+        op_kwargs={"dag_id": "airflow_dags_akshai", "dag_run_id": "scheduled__2024-01-30T00:00:00+00:00"},
     )
 
-    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> clear_successful_tasks_op
+    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> clear_failed_tasks_op
