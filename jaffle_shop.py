@@ -3,6 +3,8 @@ from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.exceptions import AirflowException
+from airflow.models import TaskInstance
+from airflow.utils.state import State
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
@@ -43,6 +45,7 @@ with DAG(
         default_args={"retries": 2},
     )
 
+    # Modified dbt_tg stage with intentional failure
     dbt_tg = DbtTaskGroup(
         group_id="dbt_final_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
@@ -52,7 +55,21 @@ with DAG(
         render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
         default_args={"retries": 2},
     )
-    raise IntentionalFailureException("Intentional failure occurred in dbt_tg stage")
+
+    def fail_task():
+        raise IntentionalFailureException("Intentional failure occurred in dbt_tg stage")
+
+    fail_task_op = PythonOperator(
+        task_id="fail_task_op",
+        python_callable=fail_task,
+    )
+    
+    try:
+        fail_task_op.execute(context={})
+    except IntentionalFailureException as e:
+        # Find the task instance and set its state to "failed"
+        task_instance = TaskInstance(task=fail_task_op, execution_date=datetime.now())
+        task_instance.set_state(state=State.FAILED)
 
     e2 = EmptyOperator(task_id="post_dbt")
 
