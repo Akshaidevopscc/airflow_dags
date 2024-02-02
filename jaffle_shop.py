@@ -1,9 +1,9 @@
-from pendulum import datetime
+from datetime import datetime
 from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.python_operator import PythonOperator
 from airflow.exceptions import AirflowException
 from airflow.models import TaskInstance
+from airflow.operators.empty import EmptyOperator
+from airflow.operators.python_operator import PythonOperator
 from airflow.utils.state import State
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
@@ -45,7 +45,6 @@ with DAG(
         default_args={"retries": 2},
     )
 
-    # Modified dbt_tg stage with intentional failure
     dbt_tg = DbtTaskGroup(
         group_id="dbt_final_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
@@ -63,7 +62,7 @@ with DAG(
         task_id="fail_task_op",
         python_callable=fail_task,
     )
-    
+
     try:
         fail_task_op.execute(context={})
     except IntentionalFailureException as e:
