@@ -15,10 +15,13 @@ profile_config = ProfileConfig(
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
 )
 
-def handle_failure(context):
+def clear_upstream_task(context):
     execution_date = context.get("execution_date")
-    # Log the failure or handle it as needed
-    print(f"Task failed on execution date: {execution_date}")
+    clear_tasks = BashOperator(
+        task_id='clear_tasks',
+        bash_command=f'airflow tasks clear -s {execution_date} -t pre_dbt -d -y airflow_dags_akshai'
+    )
+    return clear_tasks.execute(context=context)
 
 default_args = {
     'owner': 'airflow',
@@ -27,7 +30,7 @@ default_args = {
     'email_on_retry': False,
     'retries': 1,
     'retry_delay': timedelta(seconds=5),
-    'on_failure_callback': handle_failure 
+    'on_failure_callback': clear_upstream_task 
 }
 
 with DAG(
@@ -40,9 +43,14 @@ with DAG(
 
     e1 = EmptyOperator(task_id="pre_dbt")
 
-    seeds_tg = BashOperator(
-        task_id="seeds_tg",
-        bash_command="exit 1",  # Command to simulate failure
+    seeds_tg = DbtTaskGroup(
+        group_id="dbt_seeds_group",
+        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
+        operator_args={"append_env": True},
+        profile_config=profile_config,
+        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
+        render_config=RenderConfig(select=["path:seeds/"]),
+        default_args={"retries": 2},
     )
 
     stg_tg = DbtTaskGroup(
@@ -53,7 +61,6 @@ with DAG(
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:models/staging/"]),
         default_args={"retries": 2},
-        trigger_rule="none_failed"  # New trigger rule
     )
 
     dbt_tg = DbtTaskGroup(
@@ -64,10 +71,8 @@ with DAG(
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
         default_args={"retries": 2},
-        trigger_rule="none_failed"  # New trigger rule
     )
 
-    e2 = EmptyOperator(task_id="post_dbt", trigger_rule="none_failed")  # New trigger rule
+    e2 = EmptyOperator(task_id="post_dbt")
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
-#
