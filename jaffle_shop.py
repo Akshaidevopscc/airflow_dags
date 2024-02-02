@@ -19,12 +19,9 @@ def clear_upstream_task(context):
     execution_date = context.get("execution_date")
     clear_tasks = BashOperator(
         task_id='clear_tasks',
-        bash_command=f'airflow tasks clear -s {execution_date} -t pre_dbt -d -y airflow_dags_akshai'
+        bash_command=f'airflow tasks clear -s {execution_date} -t seeds_tg -y airflow_dags_akshai'
     )
     return clear_tasks.execute(context=context)
-
-def fail_task():
-    raise Exception("Manually failed task.")
 
 default_args = {
     'owner': 'airflow',
