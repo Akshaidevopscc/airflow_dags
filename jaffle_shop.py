@@ -30,7 +30,7 @@ default_args = {
     'email_on_retry': False,
     'retries': 1,
     'retry_delay': timedelta(seconds=5),
-    'on_failure_callback': clear_upstream_task  # Setting the default on_failure_callback
+    'on_failure_callback': clear_upstream_task 
 }
 
 with DAG(
