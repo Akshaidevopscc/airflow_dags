@@ -53,6 +53,7 @@ with DAG(
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:models/staging/"]),
         default_args={"retries": 2},
+        trigger_rule="none_failed"  # New trigger rule
     )
 
     dbt_tg = DbtTaskGroup(
@@ -63,8 +64,10 @@ with DAG(
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
         default_args={"retries": 2},
+        trigger_rule="none_failed"  # New trigger rule
     )
 
-    e2 = EmptyOperator(task_id="post_dbt")
+    e2 = EmptyOperator(task_id="post_dbt", trigger_rule="none_failed")  # New trigger rule
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
+#
