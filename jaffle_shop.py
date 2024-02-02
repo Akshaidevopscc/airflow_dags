@@ -27,7 +27,6 @@ def clear_failed_tasks(target_dag_id, target_dag_run_id):
         if not dag_run:
             raise ValueError(f'DAGRun not found for DAG ID {target_dag_id} and Run ID {target_dag_run_id}')
 
-        # Query to find the TaskInstances associated with the DagRun
         failed_task_instances = session.query(TaskInstance).filter(
             TaskInstance.dag_id == target_dag_id,
             TaskInstance.run_id == target_dag_run_id,
