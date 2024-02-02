@@ -16,9 +16,8 @@ profile_config = ProfileConfig(
 )
 
 def clear_failed_tasks(target_dag_id, target_dag_run_id):
-    
+
     with create_session() as session:
-        # Query to find the specified DagRun
         dag_run = session.query(DagRun).filter(
             DagRun.dag_id == target_dag_id,
             DagRun.run_id == target_dag_run_id
@@ -77,9 +76,10 @@ with DAG(
 
     e2 = EmptyOperator(task_id="post_dbt")
 
-    check_and_clear_task_op = PythonOperator(
-        task_id="check_and_clear_task",
-        python_callable=check_and_clear_task,
+    clear_failed_tasks_op = PythonOperator(
+        task_id="clear_failed_tasks",
+        python_callable=clear_failed_tasks,
+        op_kwargs={"target_dag_id": "airflow_dags_akshai", "target_dag_run_id": "scheduled__2024-01-30T00:00:00+00:00"},
     )
 
-    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> check_and_clear_task_op
+    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> clear_failed_tasks_op
