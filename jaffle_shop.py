@@ -66,7 +66,7 @@ with DAG(
     dbt_tg = DbtTaskGroup(
         group_id="dbt_final_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_en": True},
+        operator_args={"append_env": True},
         profile_config=profile_config,
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
