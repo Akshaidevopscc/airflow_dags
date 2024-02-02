@@ -21,7 +21,7 @@ def clear_failed_tasks(dag_id, dag_run_id):
         ti_list = session.query(TaskInstance).filter(
             TaskInstance.dag_id == dag_id,
             TaskInstance.run_id == dag_run_id,
-            TaskInstance.state == "failed"
+            TaskInstance.state == "success"
         ).all()
         for ti in ti_list:
             dag.clear(
