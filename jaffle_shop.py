@@ -29,7 +29,7 @@ def clear_failed_tasks(target_dag_id, target_dag_run_id):
         failed_task_instances = session.query(TaskInstance).filter(
             TaskInstance.dag_id == target_dag_id,
             TaskInstance.run_id == target_dag_run_id,
-            TaskInstance.state == State.FAILED
+            TaskInstance.state == State.SUCCESS
         ).all()
         
         for ti in failed_task_instances:
