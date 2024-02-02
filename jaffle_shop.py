@@ -1,48 +1,42 @@
-from pendulum import datetime
 from airflow import DAG
+from airflow.models import DagRun, TaskInstance
+from airflow.utils.session import create_session
+from airflow.utils.state import State
+from datetime import datetime
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python_operator import PythonOperator
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
-import requests
-import time
-import json
-import sys
-sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
-from clear_task import task_clear
-
-USERNAME = "apitest"
-PASSWORD = "mnbvcxz"
-DOMAIN = "mpmathew-test-poc.03907124.lowtouch.cloud"
-
-def check_and_clear_task():
-    def check_dag_status(dag_id, dag_run_id, username, password, domain):
-        uri = f"https://{domain}/api/v1/dags/{dag_id}/dagRuns/{dag_run_id}"
-        headers = {"Content-Type": "application/json"}
-        response = requests.get(uri, auth=(username, password), headers=headers)
-        if response.status_code == 200:
-            dag_run_details = response.json()
-            return dag_run_details.get("state")
-        else:
-            print(f"Failed to retrieve DAG Run details. Status Code: {response.status_code}")
-            return None
-
-    while True:
-        dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00", USERNAME, PASSWORD, DOMAIN)
-        if dag_run_status in ["running", "success"]:
-            print("DAG run completed successfully.")
-            break
-        elif dag_run_status in ["failed"]:
-            print("DAG run failed. Initiating task clearing...")
-            task_clear(profile="PRO", username=USERNAME, password=PASSWORD, domain=DOMAIN, dag_id="airflow_dags_akshai", dag_run_id="scheduled__2024-01-29T00:00:00+00:00", task_ids=["pre_dbt", "dbt_seeds_group", "dbt_final_group", "post_dbt"])
-            break
 
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
     target_name="dev",
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
 )
+
+def clear_failed_tasks(target_dag_id, target_dag_run_id):
+    
+    with create_session() as session:
+        # Query to find the specified DagRun
+        dag_run = session.query(DagRun).filter(
+            DagRun.dag_id == target_dag_id,
+            DagRun.run_id == target_dag_run_id
+        ).first()
+        
+        if not dag_run:
+            raise ValueError(f'DAGRun not found for DAG ID {target_dag_id} and Run ID {target_dag_run_id}')
+
+        # Query to find the TaskInstances associated with the DagRun
+        failed_task_instances = session.query(TaskInstance).filter(
+            TaskInstance.dag_id == target_dag_id,
+            TaskInstance.run_id == target_dag_run_id,
+            TaskInstance.state == State.FAILED
+        ).all()
+        
+        for ti in failed_task_instances:
+            ti.clear()
+            session.add(ti)
 
 with DAG(
     dag_id="airflow_dags_akshai",
