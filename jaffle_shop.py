@@ -1,7 +1,6 @@
 from airflow import DAG
 from airflow.models import TaskInstance
 from airflow.utils.session import create_session
-from airflow.utils.state import State
 from datetime import datetime
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python_operator import PythonOperator
@@ -26,13 +25,12 @@ def clear_successful_tasks(dag_id, dag_run_id):
         ti_list = session.query(TaskInstance).filter(
             TaskInstance.dag_id == dag_id,
             TaskInstance.run_id == dag_run_id,
-            TaskInstance.state == State.SUCCESS
+            TaskInstance.state == "success"
         ).all()
         for ti in ti_list:
             dag.clear(
                 start_date=ti.execution_date,
                 end_date=ti.end_date,
-                state=State.SUCCESS,
                 session=session
             )
 
@@ -84,4 +82,3 @@ with DAG(
     )
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> clear_successful_tasks_op
-#######
