@@ -1,12 +1,13 @@
 from airflow import DAG
-from airflow.models import TaskInstance
-from airflow.utils.session import create_session
-from datetime import datetime
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python_operator import PythonOperator
+from airflow.models import TaskInstance
+from airflow.utils.session import create_session
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
+from airflow.operators.bash_operator import BashOperator
+from datetime import datetime, timedelta
 
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
@@ -14,26 +15,30 @@ profile_config = ProfileConfig(
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
 )
 
-def clear_failed_tasks(dag_id, dag_run_id):
+def clear_upstream_task(context):
+    execution_date = context.get("execution_date")
+    clear_tasks = BashOperator(
+        task_id='clear_tasks',
+        bash_command=f'airflow tasks clear -s {execution_date} -t pre_dbt -d -y airflow_dags_akshai'
+    )
+    return clear_tasks.execute(context=context)
 
-    dag = DAG(dag_id)
-    with create_session() as session:
-        ti_list = session.query(TaskInstance).filter(
-            TaskInstance.dag_id == dag_id,
-            TaskInstance.run_id == dag_run_id,
-            TaskInstance.state == "running"
-        ).all()
-        for ti in ti_list:
-            dag.clear(
-                start_date=ti.execution_date,
-                end_date=ti.end_date,
-                session=session
-            )
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(seconds=5),
+    'on_failure_callback': clear_upstream_task
+}
 
 with DAG(
     dag_id="airflow_dags_akshai",
     start_date=datetime(2023, 11, 10),
     schedule_interval="0 0 * 1 *",
+    default_args=default_args,
+    catchup=False
 ) as dag:
 
     e1 = EmptyOperator(task_id="pre_dbt")
@@ -69,11 +74,3 @@ with DAG(
     )
 
     e2 = EmptyOperator(task_id="post_dbt")
-
-    clear_failed_tasks_op = PythonOperator(
-        task_id="clear_failed_tasks",
-        python_callable=clear_failed_tasks,
-        op_kwargs={"dag_id": "airflow_dags_akshai", "dag_run_id": "scheduled__2024-01-30T00:00:00+00:00"},
-    )
-
-    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> clear_failed_tasks_op
