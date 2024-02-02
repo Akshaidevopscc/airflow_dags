@@ -29,7 +29,7 @@ def clear_successful_tasks(dag_id, dag_run_id):
             TaskInstance.state == State.SUCCESS
         ).all()
         for ti in ti_list:
-            dag.clear_task_instances(
+            dag.clear(
                 start_date=ti.execution_date,
                 end_date=ti.end_date,
                 state=State.SUCCESS,
@@ -84,4 +84,4 @@ with DAG(
     )
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> clear_successful_tasks_op
-#
+#######
