@@ -19,7 +19,7 @@ def clear_upstream_task(context):
     execution_date = context.get("execution_date")
     clear_tasks = BashOperator(
         task_id='clear_tasks',
-        bash_command=f'airflow tasks clear -s {execution_date} -t pre_dbt -d -y airflow_dags_akshai'
+        bash_command=f'airflow tasks clear -s {execution_date} -t pre_dbt,seeds_tg,stg_tg,dbt_tg,post_dbt -d -y airflow_dags_akshai'
     )
     return clear_tasks.execute(context=context)
 
@@ -30,7 +30,7 @@ default_args = {
     'email_on_retry': False,
     'retries': 1,
     'retry_delay': timedelta(seconds=5),
-    'on_failure_callback': clear_upstream_task
+    'on_failure_callback': clear_upstream_task  # Setting the default on_failure_callback
 }
 
 with DAG(
@@ -74,3 +74,10 @@ with DAG(
     )
 
     e2 = EmptyOperator(task_id="post_dbt")
+
+    clear_upstream_task_op = PythonOperator(
+        task_id="clear_upstream_task",
+        python_callable=clear_upstream_task,
+    )
+
+    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> clear_upstream_task_op
