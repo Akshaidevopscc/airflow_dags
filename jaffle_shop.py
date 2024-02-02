@@ -54,14 +54,8 @@ with DAG(
     )
 
     stg_tg = DbtTaskGroup(
-        group_id="dbt_stg_group",
+        task_id="stg_tg",
         bash_command="exit 1",
-        '''project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(select=["path:models/staging/"]),'''
-        default_args={"retries": 2},
     )
 
     dbt_tg = DbtTaskGroup(
