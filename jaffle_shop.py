@@ -15,13 +15,10 @@ profile_config = ProfileConfig(
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
 )
 
-def clear_upstream_task(context):
+def handle_failure(context):
     execution_date = context.get("execution_date")
-    clear_tasks = BashOperator(
-        task_id='clear_tasks',
-        bash_command=f'airflow tasks clear -s {execution_date} -t seeds_tg -y airflow_dags_akshai'
-    )
-    return clear_tasks.execute(context=context)
+    # Log the failure or handle it as needed
+    print(f"Task failed on execution date: {execution_date}")
 
 default_args = {
     'owner': 'airflow',
@@ -30,7 +27,7 @@ default_args = {
     'email_on_retry': False,
     'retries': 1,
     'retry_delay': timedelta(seconds=5),
-    'on_failure_callback': clear_upstream_task 
+    'on_failure_callback': handle_failure 
 }
 
 with DAG(
