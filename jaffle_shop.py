@@ -21,6 +21,7 @@ def clear_successful_tasks(dag_id, dag_run_id):
     :param dag_id: The DAG ID of the tasks to clear.
     :param dag_run_id: The DAG run ID of the tasks to clear.
     """
+    dag = DAG(dag_id)
     with create_session() as session:
         ti_list = session.query(TaskInstance).filter(
             TaskInstance.dag_id == dag_id,
@@ -28,7 +29,7 @@ def clear_successful_tasks(dag_id, dag_run_id):
             TaskInstance.state == State.SUCCESS
         ).all()
         for ti in ti_list:
-            ti.dag.clear_task_instances(
+            dag.clear_task_instances(
                 start_date=ti.execution_date,
                 end_date=ti.end_date,
                 state=State.SUCCESS,
@@ -83,4 +84,4 @@ with DAG(
     )
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> clear_successful_tasks_op
-##
+#
