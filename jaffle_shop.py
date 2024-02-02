@@ -19,7 +19,7 @@ def clear_upstream_task(context):
     execution_date = context.get("execution_date")
     clear_tasks = BashOperator(
         task_id='clear_tasks',
-        bash_command=f'airflow tasks clear -s {execution_date} -t pre_dbt,seeds_tg,stg_tg,dbt_tg,post_dbt -d -y airflow_dags_akshai'
+        bash_command=f'airflow tasks clear -s {execution_date} -t pre_dbt -d -y airflow_dags_akshai'
     )
     return clear_tasks.execute(context=context)
 
@@ -75,9 +75,4 @@ with DAG(
 
     e2 = EmptyOperator(task_id="post_dbt")
 
-    clear_upstream_task_op = PythonOperator(
-        task_id="clear_upstream_task",
-        python_callable=clear_upstream_task,
-    )
-
-    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> clear_upstream_task_op
+    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
