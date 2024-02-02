@@ -54,7 +54,7 @@ with DAG(
     )
 
     stg_tg = DbtTaskGroup(
-        task_id="stg_tg",
+        group_id="stg_tg",
         bash_command="exit 1",
     )
 
