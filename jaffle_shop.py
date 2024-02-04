@@ -40,7 +40,7 @@ default_args = {
     "include_upstream": True,
     "include_downstream": True,
     "include_future": False,
-    "include_past": False
+    "include_past": False,
     'retries': 1,
     'retry_delay': timedelta(seconds=5),
     'on_failure_callback': clear_all_tasks,
