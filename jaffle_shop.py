@@ -7,6 +7,7 @@ from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
 from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
+from airflow.models.taskinstance import TaskInstance
 
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
@@ -15,11 +16,10 @@ profile_config = ProfileConfig(
 )
 
 def clear_all_tasks(context):
-    dag_id = context["dag"].dag_id
     execution_date = context["execution_date"]
     dag = context["dag"]
     for task in dag.tasks:
-        task_instance = context["task_instance"]
+        task_instance = TaskInstance(task=task, execution_date=execution_date)
         task_instance.clear()
 
 default_args = {
@@ -80,4 +80,3 @@ with DAG(
     e2 = EmptyOperator(task_id="post_dbt")
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
-###
