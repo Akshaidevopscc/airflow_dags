@@ -9,7 +9,6 @@ from pathlib import Path
 from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
 
-# Define profile_config
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
     target_name="dev",
@@ -18,14 +17,12 @@ profile_config = ProfileConfig(
 
 def clear_all_tasks(context):
     execution_date = context.get("execution_date")
-    # Find all task instances for the current DAG run
     dag_id = context["dag"].dag_id
     task_instances = (
         session.query(TaskInstance)
         .filter(TaskInstance.dag_id == dag_id, TaskInstance.execution_date == execution_date)
         .all()
     )
-    # Clear each task instance
     for task_instance in task_instances:
         task_instance.clear()
 
@@ -34,9 +31,19 @@ default_args = {
     'depends_on_past': False,
     'email_on_failure': False,
     'email_on_retry': False,
+    "dry_run": False,
+    "only_failed": True,
+    "only_running": False,
+    "include_subdags": True,
+    "include_parentdag": True,
+    "reset_dag_runs": True,
+    "include_upstream": True,
+    "include_downstream": True,
+    "include_future": False,
+    "include_past": False
     'retries': 1,
     'retry_delay': timedelta(seconds=5),
-    'on_failure_callback': clear_all_tasks 
+    'on_failure_callback': clear_all_tasks,
 }
 
 with DAG(
@@ -53,7 +60,7 @@ with DAG(
         group_id="dbt_seeds_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
         operator_args={"append_env": True},
-        profile_config=profile_config,  # Use profile_config here
+        profile_config=profile_config,  
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:seeds/"]),
         default_args={"retries": 2},
@@ -63,7 +70,7 @@ with DAG(
         group_id="dbt_stg_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
         operator_args={"append_env": True},
-        profile_config=profile_config,  # Use profile_config here
+        profile_config=profile_config,  
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:models/staging/"]),
         default_args={"retries": 2},
@@ -73,7 +80,7 @@ with DAG(
         group_id="dbt_final_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
         operator_args={"append_env": True},
-        profile_config=profile_config,  # Use profile_config here
+        profile_config=profile_config, 
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
         default_args={"retries": 2},
