@@ -17,10 +17,9 @@ profile_config = ProfileConfig(
 
 def clear_all_tasks(context):
     execution_date = context["execution_date"]
-    dag = context["dag"]
-    for task in dag.tasks:
-        task_instance = TaskInstance(task=task, execution_date=execution_date)
-        task_instance.clear()
+    dag_id = context["dag"].dag_id
+    dag = DagBag().get_dag(dag_id)
+    dag.clear_task_instances(execution_date=execution_date)
 
 default_args = {
     'owner': 'airflow',
@@ -80,3 +79,5 @@ with DAG(
     e2 = EmptyOperator(task_id="post_dbt")
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
+
+###
