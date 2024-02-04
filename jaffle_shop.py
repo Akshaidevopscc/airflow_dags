@@ -9,14 +9,23 @@ from pathlib import Path
 from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
 
+# Define profile_config
+profile_config = ProfileConfig(
+    profile_name="jaffle_shop",
+    target_name="dev",
+    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
+)
+
 def clear_all_tasks(context):
     execution_date = context.get("execution_date")
+    # Find all task instances for the current DAG run
     dag_id = context["dag"].dag_id
     task_instances = (
         session.query(TaskInstance)
         .filter(TaskInstance.dag_id == dag_id, TaskInstance.execution_date == execution_date)
         .all()
     )
+    # Clear each task instance
     for task_instance in task_instances:
         task_instance.clear()
 
@@ -44,7 +53,7 @@ with DAG(
         group_id="dbt_seeds_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
         operator_args={"append_env": True},
-        profile_config=profile_config,
+        profile_config=profile_config,  # Use profile_config here
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:seeds/"]),
         default_args={"retries": 2},
@@ -54,7 +63,7 @@ with DAG(
         group_id="dbt_stg_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
         operator_args={"append_env": True},
-        profile_config=profile_config,
+        profile_config=profile_config,  # Use profile_config here
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:models/staging/"]),
         default_args={"retries": 2},
@@ -64,7 +73,7 @@ with DAG(
         group_id="dbt_final_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
         operator_args={"append_env": True},
-        profile_config=profile_config,
+        profile_config=profile_config,  # Use profile_config here
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
         default_args={"retries": 2},
