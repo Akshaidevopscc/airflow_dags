@@ -9,19 +9,16 @@ from pathlib import Path
 from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
 
-profile_config = ProfileConfig(
-    profile_name="jaffle_shop",
-    target_name="dev",
-    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
-)
-
-def clear_upstream_task(context):
+def clear_all_tasks(context):
     execution_date = context.get("execution_date")
-    clear_tasks = BashOperator(
-        task_id='clear_tasks',
-        bash_command=f'airflow tasks clear -s {execution_date} -t pre_dbt -d -y airflow_dags_akshai'
+    dag_id = context["dag"].dag_id
+    task_instances = (
+        session.query(TaskInstance)
+        .filter(TaskInstance.dag_id == dag_id, TaskInstance.execution_date == execution_date)
+        .all()
     )
-    return clear_tasks.execute(context=context)
+    for task_instance in task_instances:
+        task_instance.clear()
 
 default_args = {
     'owner': 'airflow',
@@ -30,7 +27,7 @@ default_args = {
     'email_on_retry': False,
     'retries': 1,
     'retry_delay': timedelta(seconds=5),
-    'on_failure_callback': clear_upstream_task 
+    'on_failure_callback': clear_all_tasks 
 }
 
 with DAG(
