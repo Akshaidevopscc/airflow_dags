@@ -18,13 +18,14 @@ profile_config = ProfileConfig(
 def clear_all_tasks(context):
     execution_date = context.get("execution_date")
     dag_id = context["dag"].dag_id
-    task_instances = (
-        session.query(TaskInstance)
-        .filter(TaskInstance.dag_id == dag_id, TaskInstance.execution_date == execution_date)
-        .all()
-    )
-    for task_instance in task_instances:
-        task_instance.clear()
+    with create_session() as session:
+        task_instances = (
+            session.query(TaskInstance)
+            .filter(TaskInstance.dag_id == dag_id, TaskInstance.execution_date == execution_date)
+            .all()
+        )
+        for task_instance in task_instances:
+            task_instance.clear()
 
 default_args = {
     'owner': 'airflow',
