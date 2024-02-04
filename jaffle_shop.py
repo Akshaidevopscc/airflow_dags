@@ -1,7 +1,6 @@
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python_operator import PythonOperator
-from airflow.models.taskinstance import TaskInstance  
 from airflow.utils.session import create_session
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
@@ -16,16 +15,10 @@ profile_config = ProfileConfig(
 )
 
 def clear_all_tasks(context):
-    execution_date = context.get("execution_date")
     dag_id = context["dag"].dag_id
-    with create_session() as session:
-        task_instances = (
-            session.query(TaskInstance)
-            .filter(TaskInstance.dag_id == dag_id, TaskInstance.execution_date == execution_date)
-            .all()
-        )
-        for task_instance in task_instances:
-            task_instance.clear()
+    execution_date = context["execution_date"]
+    dag = context["dag"]
+    dag.clear_task_instances(execution_date=execution_date)
 
 default_args = {
     'owner': 'airflow',
@@ -58,8 +51,8 @@ with DAG(
     e1 = EmptyOperator(task_id="pre_dbt")
 
     seeds_tg = BashOperator(
-    task_id="seeds_tg",
-    bash_command="exit 1", 
+        task_id="seeds_tg",
+        bash_command="exit 1", 
     )
 
     stg_tg = DbtTaskGroup(
@@ -85,4 +78,3 @@ with DAG(
     e2 = EmptyOperator(task_id="post_dbt")
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
-    #
