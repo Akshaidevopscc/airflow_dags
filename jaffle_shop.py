@@ -9,7 +9,7 @@ def clear_upstream_task(context):
     client = Client(None)
     upstream_tasks = context['task'].get_direct_relatives(upstream=True)
     for task in upstream_tasks:
-        task_instance = client.clear_task_instance(
+        cleared_instances = client.clear_task_instances(
             task_id=task.task_id,
             execution_date=execution_date,
             upstream=True,
@@ -17,10 +17,11 @@ def clear_upstream_task(context):
             recursive=True,
             include_subdags=True
         )
-        if task_instance:
-            print(f"Cleared task instance for task {task.task_id}")
+        if cleared_instances:
+            print(f"Cleared task instances for task {task.task_id}")
         else:
-            print(f"Failed to clear task instance for task {task.task_id}")
+            print(f"Failed to clear task instances for task {task.task_id}")
+
 
 # Default settings applied to all tasks
 default_args = {
@@ -54,3 +55,4 @@ with DAG('clear_upstream_task',
         on_failure_callback=clear_upstream_task
     )
     t0 >> t1 >> t2 >> t3
+################
