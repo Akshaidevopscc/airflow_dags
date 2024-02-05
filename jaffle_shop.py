@@ -29,7 +29,7 @@ def check_and_clear_task():
             return None
 
     while True:
-        dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-30T00:00:00+00:00", USERNAME, PASSWORD, DOMAIN)
+        dag_run_status = check_dag_status("airflow_dags_akshai", "scheduled__2024-01-29T00:00:00+00:00", USERNAME, PASSWORD, DOMAIN)
         if dag_run_status in ["running", "success"]:
             print("DAG run completed successfully.")
             break
@@ -90,3 +90,4 @@ with DAG(
     )
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2 >> check_and_clear_task_op
+####
