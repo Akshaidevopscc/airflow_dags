@@ -9,8 +9,18 @@ def clear_upstream_task(context):
     client = Client(None)
     upstream_tasks = context['task'].get_direct_relatives(upstream=True)
     for task in upstream_tasks:
-        task_instance = client.get_task_instance(task.task_id, execution_date)
-        task_instance.clear()
+        task_instance = client.clear_task_instance(
+            task_id=task.task_id,
+            execution_date=execution_date,
+            upstream=True,
+            downstream=False,
+            recursive=True,
+            include_subdags=True
+        )
+        if task_instance:
+            print(f"Cleared task instance for task {task.task_id}")
+        else:
+            print(f"Failed to clear task instance for task {task.task_id}")
 
 # Default settings applied to all tasks
 default_args = {
