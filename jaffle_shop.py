@@ -8,6 +8,7 @@ from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
 from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
+from pendulum import datetime
 
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
@@ -19,34 +20,24 @@ def clear_upstream_tasks(context):
     execution_date = context.get("execution_date")
     clear_tasks = BashOperator(
         task_id='clear_tasks',
-        bash_command=f'airflow tasks clear -s {execution_date} -t downstream_task_id -d -y <your_dag_id>'
+        bash_command=f'airflow tasks clear -s {execution_date} -t downstream_task_id -d -y airflow_dags_akshai'
     )
     return clear_tasks.execute(context=context)
 
-default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
-    'retry_delay': timedelta(seconds=5)
-}
+with DAG(
+    dag_id="airflow_dags_akshai",
+    start_date=datetime(2023, 11, 10),
+    schedule_interval="0 0 * 1 *",
+) as dag:
 
-with DAG('your_dag_id',
-         start_date=datetime(2021, 1, 1),
-         max_active_runs=3,
-         schedule_interval=timedelta(minutes=5),
-         default_args=default_args,
-         catchup=False
-         ) as dag:
-
-    t0 = DummyOperator(task_id='t0')
-    t1 = DummyOperator(task_id='t1')
-    t2 = DummyOperator(task_id='t2')
-    t3 = BashOperator(
+    t0 = EmptyOperator(task_id='t0')
+    t1 = EmptyOperator(task_id='t1')
+    t2 = EmptyOperator(task_id='t2')
+    t3 = PythonOperator(
         task_id='t3',
-        bash_command='exit 123',
+        python_callable=your_python_function,
         on_failure_callback=clear_upstream_tasks
     )
 
     t0 >> t1 >> t2 >> t3
+####
