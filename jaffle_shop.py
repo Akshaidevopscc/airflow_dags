@@ -1,27 +1,26 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
-from airflow.api.client.local_client import Client
 from datetime import datetime, timedelta
+from airflow.utils.dag_processing import SimpleDag
 
 def clear_upstream_task(context):
     execution_date = context.get("execution_date")
-    client = Client(None)
-    upstream_tasks = context['task'].get_direct_relatives(upstream=True)
-    for task in upstream_tasks:
-        task_instance = client.clear_task_instance(
-            task_id=task.task_id,
-            execution_date=execution_date,
-            upstream=True,
-            downstream=False,
-            recursive=True,
-            include_subdags=True
+    dag = context['dag']
+    dag_bag = context['dag_bag']
+    task_instance = context['task_instance']
+    upstream_task_ids = dag.get_task(task_instance.task_id).upstream_task_ids
+    for task_id in upstream_task_ids:
+        dag.clear(
+            start_date=execution_date,
+            end_date=execution_date,
+            only_failed=True,
+            include_subdags=True,
+            reset_dag_runs=True,
+            task_regex=task_id,
+            include_parentdag_runs=True,
         )
-        if task_instance:
-            print(f"Cleared task instance for task {task.task_id}")
-        else:
-            print(f"Failed to clear task instance for task {task.task_id}")
-
+        print(f"Cleared upstream tasks for task {task_id}")
 
 # Default settings applied to all tasks
 default_args = {
@@ -56,3 +55,4 @@ with DAG('clear_upstream_task',
     )
     t0 >> t1 >> t2 >> t3
 
+###############################################
