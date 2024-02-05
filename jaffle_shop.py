@@ -1,9 +1,8 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
-from airflow.api.client.local_client import Client
+from airflow.api.experimental import clear_task_instance
 from datetime import datetime, timedelta
-
 from airflow.api.experimental import clear_task_instance
 
 def clear_upstream_task(context):
