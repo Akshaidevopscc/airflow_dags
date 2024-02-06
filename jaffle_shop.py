@@ -6,12 +6,6 @@ from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from airflow.operators.python_operator import PythonOperator
 from pathlib import Path
 
-profile_config = ProfileConfig(
-    profile_name="jaffle_shop",
-    target_name="dev",
-    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
-)
-
 def clear_upstream_task(context):
     execution_date = context.get("execution_date")
     dag = context['dag']
@@ -31,20 +25,14 @@ def clear_upstream_task(context):
         )
         print(task_ids)
         print("Cleared upstream tasks for task {}".format(task_id))
-        # Change the status of the cleared task to 'no_status'
         task_instance.xcom_push(key=f'{task_id}_status', value='no_status')
         print("****************************************************************************************************")
 
-def dbt_task_group(dag, group_id, render_config_select, retries):
-    return DbtTaskGroup(
-        group_id=group_id,
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(select=[render_config_select]),
-        default_args={"retries": retries},
-    )
+profile_config = ProfileConfig(
+    profile_name="jaffle_shop",
+    target_name="dev",
+    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
+)
 
 with DAG(
     dag_id="airflow_dags_akshai",
@@ -54,18 +42,37 @@ with DAG(
 
     e1 = EmptyOperator(task_id="pre_dbt")
 
-    seeds_tg = dbt_task_group(dag, "dbt_seeds_group", "path:seeds/", 2)
-    stg_tg = dbt_task_group(dag, "dbt_stg_group", "path:models/staging/", 2)
-    dbt_tg = dbt_task_group(dag, "dbt_final_group", "", 2)
+    seeds_tg = DbtTaskGroup(
+        group_id="dbt_seeds_group",
+        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
+        operator_args={"append_env": True},
+        profile_config=profile_config,
+        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
+        render_config=RenderConfig(select=["path:seeds/"]),
+        default_args={"retries": 2},
+    )
+
+    stg_tg = DbtTaskGroup(
+        group_id="dbt_stg_group",
+        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
+        operator_args={"append_env": True},
+        profile_config=profile_config,
+        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
+        render_config=RenderConfig(select=["path:models/staging/"]),
+        default_args={"retries": 2},
+    )
+
+    dbt_tg = DbtTaskGroup(
+        group_id="dbt_final_group",
+        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
+        operator_args={"append_env": True},
+        profile_config=profile_config,
+        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
+        render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
+        default_args={"retries": 2},
+    )
 
     e2 = EmptyOperator(task_id="post_dbt")
-
-    clear_upstream = PythonOperator(
-        task_id='clear_upstream_task',
-        python_callable=clear_upstream_task,
-        provide_context=True,
-        trigger_rule='all_failed'
-    )
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
     e1 >> clear_upstream
