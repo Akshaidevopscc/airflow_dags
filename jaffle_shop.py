@@ -20,8 +20,10 @@ def clear_upstream_task(context):
             include_parentdag=True,
             task_ids=[task_id],
         )
-        print("****************************************************************************************************")
         print("Cleared upstream tasks for task {}".format(task_id))
+        # Change the status of the cleared task to 'no_status'
+        task_instance.xcom_push(key=f'{task_id}_status', value='no_status')
+        print("****************************************************************************************************")
 
 default_args = {
     'owner': 'airflow',
