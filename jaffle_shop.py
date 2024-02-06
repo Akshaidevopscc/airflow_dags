@@ -20,6 +20,8 @@ def clear_upstream_task(context):
             include_parentdag=True,
             task_ids=[task_id],
         )
+        print('**********************************************************************************')
+        print(task_id)
         print("Cleared upstream tasks for task {}".format(task_id))
 
 default_args = {
