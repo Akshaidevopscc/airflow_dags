@@ -65,10 +65,9 @@ with DAG('airflow_dags_akshai',
     dbt_tg = BashOperator(
         task_id="dbt_final_group",
         bash_command='exit 123',
-        on_failure_callback=lambda context: clear_failed_tasks('clear_upstream_task', 'scheduled__2024-02-06T13:46:51.401176+00:00')
+        on_failure_callback=lambda context: clear_failed_tasks('airflow_dags_akshai', 'manual__2024-02-06T17:51:28.425904+00:00')
     )
 
     e2 = EmptyOperator(task_id="post_dbt")
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
-#######################
