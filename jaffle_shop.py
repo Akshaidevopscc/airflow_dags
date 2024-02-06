@@ -14,8 +14,16 @@ def clear_upstream_task(context):
         dag.clear(
             start_date=execution_date,
             end_date=execution_date,
+            dry_run: False,
             only_failed=False,
+            only_running: False,
             include_subdags=True,
+            include_parentdag: True,
+            reset_dag_runs: True,
+            include_upstream: True,
+            include_downstream: True,
+            include_future: False,
+            include_past: False
             task_ids=[task_id],
         )
         print("Cleared upstream tasks for task {}".format(task_id))
