@@ -1,10 +1,12 @@
 from pendulum import datetime
 from airflow import DAG
-from airflow.operators.empty import EmptyOperator
 from cosmos import DbtTaskGroup, RenderConfig
-from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
-from pathlib import Path
+from airflow.operators.empty import EmptyOperator
+from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
+from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
+from datetime import datetime, timedelta
+from pathlib import Path
 
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
@@ -33,12 +35,14 @@ def clear_upstream_task(context):
         task_instance.xcom_push(key=f'{task_id}_status', value='no_status')
         print("****************************************************************************************************")
 
-with DAG(
-    dag_id="airflow_dags_akshai",
-    start_date=datetime(2023, 11, 10),
-    schedule_interval="0 0 * 1 *",
-    on_failure_callback=clear_upstream_task
-) as dag:
+with DAG('clear_upstream_task',
+         start_date=datetime(2021, 1, 1),
+         schedule_interval="0 0 * 1 *",
+         max_active_runs=3,
+         schedule_interval=timedelta(minutes=5),
+         default_args=default_args,
+         catchup=False
+         ) as dag:
 
     e1 = EmptyOperator(task_id="pre_dbt")
 
