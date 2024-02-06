@@ -14,7 +14,7 @@ def clear_upstream_task(context):
             end_date=execution_date,
             only_failed=True,
             include_subdags=True,
-            task_regex=task_id,
+            task_ids=[task_id],
             include_parentdag_runs=True,
         )
         print("Cleared upstream tasks for task {}".format(task_id))
@@ -50,4 +50,4 @@ with DAG('clear_upstream_task',
         on_failure_callback=clear_upstream_task
     )
     t0 >> t1 >> t2 >> t3
-####
+#
