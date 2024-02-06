@@ -18,7 +18,6 @@ def clear_upstream_task(context):
             only_running=False,
             include_subdags=True,
             include_parentdag=True,
-            include_past=False,
             task_ids=[task_id],
         )
         print("****************************************************************************************************")
