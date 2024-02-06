@@ -1,7 +1,7 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
-from airflow.models import DagRun
+from airflow.models import DagRun, TaskInstance
 from airflow.utils.session import create_session
 from airflow.utils.state import State
 from datetime import datetime, timedelta
@@ -18,7 +18,7 @@ def clear_failed_tasks(target_dag_id, target_dag_run_id):
 
         for ti in dag_run.get_task_instances():
             if ti.state == State.FAILED:
-                ti.clear()
+                ti.state = State.NONE
                 session.commit()
 
 default_args = {
@@ -51,4 +51,3 @@ with DAG('clear_upstream_task',
         on_failure_callback=lambda context: clear_failed_tasks('clear_upstream_task', 'scheduled__2024-02-06T13:46:51.401176+00:00')
     )
     t0 >> t1 >> t2 >> t3
-#############################
