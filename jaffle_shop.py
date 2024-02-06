@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
-from airflow.utils.trigger_rule import TriggerRule
+from airflow.operators.python_operator import PythonOperator
 from pathlib import Path
 
 profile_config = ProfileConfig(
@@ -34,6 +34,17 @@ def clear_upstream_task(context):
         task_instance.xcom_push(key=f'{task_id}_status', value='no_status')
         print("****************************************************************************************************")
 
+def dbt_task_group(dag, group_id, render_config_select, retries):
+    return DbtTaskGroup(
+        group_id=group_id,
+        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
+        operator_args={"append_env": True},
+        profile_config=profile_config,
+        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
+        render_config=RenderConfig(select=[render_config_select]),
+        default_args={"retries": retries},
+    )
+
 with DAG(
     dag_id="airflow_dags_akshai",
     start_date=datetime(2023, 11, 10),
@@ -42,39 +53,19 @@ with DAG(
 
     e1 = EmptyOperator(task_id="pre_dbt")
 
-    seeds_tg = DbtTaskGroup(
-        group_id="dbt_seeds_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(select=["path:seeds/"]),
-        default_args={"retries": 2},
-        trigger_rule=TriggerRule.ONE_FAILED
-    )
-
-    stg_tg = DbtTaskGroup(
-        group_id="dbt_stg_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(select=["path:models/staging/"]),
-        default_args={"retries": 2},
-        trigger_rule=TriggerRule.ONE_FAILED
-    )
-
-    dbt_tg = DbtTaskGroup(
-        group_id="dbt_final_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
-        default_args={"retries": 2},
-        trigger_rule=TriggerRule.ONE_FAILED
-    )
+    seeds_tg = dbt_task_group(dag, "dbt_seeds_group", "path:seeds/", 2)
+    stg_tg = dbt_task_group(dag, "dbt_stg_group", "path:models/staging/", 2)
+    dbt_tg = dbt_task_group(dag, "dbt_final_group", "", 2)
 
     e2 = EmptyOperator(task_id="post_dbt")
 
+    clear_upstream = PythonOperator(
+        task_id='clear_upstream_task',
+        python_callable=clear_upstream_task,
+        provide_context=True
+    )
+
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
+    seeds_tg >> clear_upstream
+    stg_tg >> clear_upstream
+    dbt_tg >> clear_upstream
