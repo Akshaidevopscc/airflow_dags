@@ -73,9 +73,9 @@ with DAG(
         task_id='clear_upstream_task',
         python_callable=clear_upstream_task,
         provide_context=True,
-        trigger_rule='all_failed'
-    )
-
+        trigger_rule='one_failed'
+)
+    
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
     e1 >> clear_upstream
     seeds_tg >> clear_upstream
