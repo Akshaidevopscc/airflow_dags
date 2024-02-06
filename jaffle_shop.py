@@ -47,6 +47,7 @@ with DAG('clear_upstream_task',
     )
     t1 = DummyOperator(
         task_id='t1',
+        bash_command='exit 123',
         on_failure_callback=clear_upstream_task
     )
     t2 = DummyOperator(
@@ -55,7 +56,6 @@ with DAG('clear_upstream_task',
     )
     t3 = BashOperator(
         task_id='t3',
-        bash_command='exit 123',
         on_failure_callback=clear_upstream_task
     )
     t0 >> t1 >> t2 >> t3
