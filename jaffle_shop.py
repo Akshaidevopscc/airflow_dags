@@ -18,7 +18,6 @@ def clear_upstream_task(context):
             only_running=False,
             include_subdags=True,
             include_parentdag=True,
-            reset_dag_runs=True,
             include_upstream=True,
             include_downstream=True,
             include_future=False,
