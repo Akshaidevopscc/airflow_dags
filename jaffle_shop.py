@@ -3,24 +3,25 @@ from airflow.models import DagRun
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
+from airflow.models import TaskInstance
 
 def clear_failed_tasks_of_another_dag(context, target_dag_id, target_dag_run_id):
-    session = settings.Session()
     try:
-        # Find the target DAG run
-        target_dag_run = (
-            session.query(DagRun)
-            .filter(DagRun.dag_id == target_dag_id, DagRun.run_id == target_dag_run_id)
-            .one()
+        # Find the failed task instances of the target DAG run
+        failed_task_instances = (
+            TaskInstance.find(
+                dag_id=target_dag_id,
+                execution_date=context['execution_date'],
+                state='failed'
+            )
         )
 
-        # Clear failed tasks of the target DAG run
-        target_dag_run.clear()
-        print(f"Cleared failed tasks of DAG run {target_dag_run_id} in DAG {target_dag_id}")
+        # Clear the failed task instances
+        for task_instance in failed_task_instances:
+            task_instance.clear()
+            print(f"Cleared failed task instance {task_instance.task_id} of DAG {target_dag_id}, run {target_dag_run_id}")
     except Exception as e:
         print(f"Error clearing failed tasks of DAG run {target_dag_run_id} in DAG {target_dag_id}: {e}")
-    finally:
-        session.close()
 
 default_args = {
     'owner': 'airflow',
