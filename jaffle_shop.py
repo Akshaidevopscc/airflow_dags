@@ -39,13 +39,16 @@ with DAG('clear_upstream_task',
          catchup=False
          ) as dag:
     t0 = DummyOperator(
-        task_id='t0'
+        task_id='t0',
+        on_failure_callback=clear_upstream_task
     )
     t1 = DummyOperator(
-        task_id='t1'
+        task_id='t1',
+        on_failure_callback=clear_upstream_task
     )
     t2 = DummyOperator(
-        task_id='t2'
+        task_id='t2',
+        on_failure_callback=clear_upstream_task
     )
     t3 = BashOperator(
         task_id='t3',
