@@ -70,15 +70,11 @@ with DAG(
     e2 = EmptyOperator(task_id="post_dbt")
 
     clear_upstream = PythonOperator(
-        task_id='clear_upstream_task',
-        python_callable=clear_upstream_task,
-        provide_context=True,
-        trigger_rule='one_failed'
+    task_id='clear_upstream_task',
+    python_callable=clear_upstream_task,
+    provide_context=True,
+    trigger_rule='one_failed'
 )
-    
-    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
-    e1 >> clear_upstream
-    seeds_tg >> clear_upstream
-    stg_tg >> clear_upstream
-    dbt_tg >> clear_upstream
-    e2 >> clear_upstream
+
+e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
+[e1, seeds_tg, stg_tg, dbt_tg, e2] >> clear_upstream
