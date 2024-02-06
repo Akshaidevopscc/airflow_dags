@@ -33,15 +33,11 @@ def clear_upstream_task(context):
         task_instance.xcom_push(key=f'{task_id}_status', value='no_status')
         print("****************************************************************************************************")
 
-def clear_upstream_on_failure(context):
-    print("One of the tasks failed. Clearing upstream tasks.")
-    clear_upstream_task(context)
-
 with DAG(
     dag_id="airflow_dags_akshai",
     start_date=datetime(2023, 11, 10),
     schedule_interval="0 0 * 1 *",
-    on_failure_callback=clear_upstream_on_failure,
+    on_failure_callback=clear_upstream_task,
 ) as dag:
 
     e1 = EmptyOperator(task_id="pre_dbt")
@@ -69,6 +65,7 @@ with DAG(
     dbt_tg = BashOperator(
         task_id="dbt_final_group",
         bash_command='exit 123'
+        on_failure_callback=clear_upstream_task
     )
 
     e2 = EmptyOperator(task_id="post_dbt")
