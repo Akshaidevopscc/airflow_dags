@@ -68,7 +68,7 @@ with DAG('clear_upstream_task',
 
     dbt_tg = BashOperator(
         task_id="dbt_final_group",
-        bash_command='exit 123'
+        bash_command='exit 123',
         on_failure_callback=clear_upstream_task
     )
 
