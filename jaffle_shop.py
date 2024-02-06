@@ -51,3 +51,4 @@ with DAG('clear_upstream_task',
         on_failure_callback=lambda context: clear_failed_tasks('clear_upstream_task', 'scheduled__2024-02-06T13:46:51.401176+00:00')
     )
     t0 >> t1 >> t2 >> t3
+#############################
