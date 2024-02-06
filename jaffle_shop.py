@@ -3,6 +3,7 @@ from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
+from airflow.utils.trigger_rule import TriggerRule
 from pathlib import Path
 
 profile_config = ProfileConfig(
@@ -29,6 +30,7 @@ def clear_upstream_task(context):
             task_ids=[task_id],
         )
         print("Cleared upstream tasks for task {}".format(task_id))
+        # Change the status of the cleared task to 'no_status'
         task_instance.xcom_push(key=f'{task_id}_status', value='no_status')
         print("****************************************************************************************************")
 
@@ -48,7 +50,7 @@ with DAG(
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:seeds/"]),
         default_args={"retries": 2},
-        on_failure_callback=clear_upstream_task
+        trigger_rule=TriggerRule.ONE_FAILED
     )
 
     stg_tg = DbtTaskGroup(
@@ -59,7 +61,7 @@ with DAG(
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:models/staging/"]),
         default_args={"retries": 2},
-        on_failure_callback=clear_upstream_task
+        trigger_rule=TriggerRule.ONE_FAILED
     )
 
     dbt_tg = DbtTaskGroup(
@@ -70,7 +72,7 @@ with DAG(
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
         default_args={"retries": 2},
-        on_failure_callback=clear_upstream_task
+        trigger_rule=TriggerRule.ONE_FAILED
     )
 
     e2 = EmptyOperator(task_id="post_dbt")
