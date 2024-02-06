@@ -1,30 +1,29 @@
-from airflow import DAG, settings
-from airflow.models import DagRun
+from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
+from airflow.models import DagRun
+from airflow.utils.session import create_session
 from datetime import datetime, timedelta
-from airflow.models import TaskInstance
 
-def clear_failed_tasks_of_another_dag(context, target_dag_id, target_dag_run_id):
-    try:
-        # Find the failed task instances of the target DAG run
-        task_instance_list = context.get("task_instance_list")
-        if not task_instance_list:
-            print("Task instance list is empty or None.")
-            return
+def clear_failed_tasks(target_dag_id, target_dag_run_id):
+    with create_session() as session:
+        dag_run = session.query(DagRun).filter(
+            DagRun.dag_id == target_dag_id,
+            DagRun.run_id == target_dag_run_id
+        ).first()
+        
+        if not dag_run:
+            raise ValueError(f'DAGRun not found for DAG ID {target_dag_id} and Run ID {target_dag_run_id}')
 
-        failed_task_instances = [
-            ti for ti in task_instance_list
-            if ti and ti.dag_id == target_dag_id and ti.execution_date == target_dag_run_id and ti.state == 'failed'
-        ]
-
-        # Clear the failed task instances
-        for task_instance in failed_task_instances:
-            task_instance.clear()
-            print(f"Cleared failed task instance {task_instance.task_id} of DAG {target_dag_id}, run {target_dag_run_id}")
-    except Exception as e:
-        print(f"Error clearing failed tasks of DAG run {target_dag_run_id} in DAG {target_dag_id}: {e}")
-############################
+        failed_task_instances = session.query(TaskInstance).filter(
+            TaskInstance.dag_id == target_dag_id,
+            TaskInstance.run_id == target_dag_run_id,
+            TaskInstance.state == State.FAILED
+        ).all()
+        
+        for ti in failed_task_instances:
+            ti.clear()
+            session.add(ti)
 
 default_args = {
     'owner': 'airflow',
@@ -42,20 +41,17 @@ with DAG('clear_upstream_task',
          catchup=False
          ) as dag:
     t0 = DummyOperator(
-        task_id='t0',
-        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "scheduled__2024-02-06T13:46:51.401176+00:00")
+        task_id='t0'
     )
     t1 = DummyOperator(
-        task_id='t1',
-        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "scheduled__2024-02-06T13:46:51.401176+00:00")
+        task_id='t1'
     )
     t2 = DummyOperator(
-        task_id='t2',
-        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "scheduled__2024-02-06T13:46:51.401176+00:00")
+        task_id='t2'
     )
     t3 = BashOperator(
         task_id='t3',
         bash_command='exit 123',
-        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "scheduled__2024-02-06T13:46:51.401176+00:00")
+        on_failure_callback=lambda context: clear_failed_tasks('clear_upstream_task', 'scheduled__2024-02-06T13:46:51.401176+00:00')
     )
     t0 >> t1 >> t2 >> t3
