@@ -4,6 +4,7 @@ from airflow.operators.empty import EmptyOperator
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
+from airflow.operators.bash_operator import BashOperator
 
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
@@ -65,19 +66,11 @@ with DAG(
         default_args={"retries": 2},
     )
 
-    dbt_tg = DbtTaskGroup(
+    dbt_tg = BashOperator(
         group_id="dbt_final_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
-        default_args={"retries": 2},
+        bash_command='exit 123'
     )
 
     e2 = EmptyOperator(task_id="post_dbt")
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
-
-
-########
