@@ -9,11 +9,11 @@ def clear_failed_tasks_of_another_dag(context, target_dag_id, target_dag_run_id)
     try:
         # Find the failed task instances of the target DAG run
         failed_task_instances = (
-            TaskInstance.find(
-                dag_id=target_dag_id,
-                execution_date=context['execution_date'],
-                state='failed'
-            )
+            context['task_instance'].session.query(TaskInstance)
+            .filter(TaskInstance.dag_id == target_dag_id,
+                    TaskInstance.execution_date == context['execution_date'],
+                    TaskInstance.state == 'failed')
+            .all()
         )
 
         # Clear the failed task instances
