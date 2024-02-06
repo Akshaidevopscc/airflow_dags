@@ -55,26 +55,30 @@ with DAG('airflow_dags_akshai',
     e1 = EmptyOperator(task_id="pre_dbt")
 
     seeds_tg = DbtTaskGroup(
-        task_id="dbt_seeds_group",
+        group_id="dbt_seeds_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
         operator_args={"append_env": True},
         profile_config=profile_config,
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:seeds/"]),
         default_args={"retries": 2},
-        on_failure_callback=clear_upstream_task
     )
 
+    for task in seeds_tg.tasks:
+        task.on_failure_callback = clear_upstream_task
+
     stg_tg = DbtTaskGroup(
-        task_id="dbt_stg_group",
+        group_id="dbt_stg_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
         operator_args={"append_env": True},
         profile_config=profile_config,
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:models/staging/"]),
         default_args={"retries": 2},
-        on_failure_callback=clear_upstream_task
     )
+
+    for task in stg_tg.tasks:
+        task.on_failure_callback = clear_upstream_task
 
     dbt_tg = BashOperator(
         task_id="dbt_final_group",
