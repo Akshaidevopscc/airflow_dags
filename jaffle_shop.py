@@ -67,7 +67,7 @@ with DAG(
     )
 
     dbt_tg = BashOperator(
-        group_id="dbt_final_group",
+        task_id="dbt_final_group",
         bash_command='exit 123'
     )
 
