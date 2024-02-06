@@ -22,7 +22,7 @@ def clear_upstream_task(context):
             include_upstream=True,
             include_downstream=True,
             include_future=False,
-            include_past=False
+            include_past=False,
             task_ids=[task_id],
         )
         print("Cleared upstream tasks for task {}".format(task_id))
