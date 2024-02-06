@@ -18,7 +18,8 @@ profile_config = ProfileConfig(
 def clear_failed_tasks_from_other_dag(dag_id, dag_run_id):
     dagrun = DagRun.find(dag_id=dag_id, run_id=dag_run_id)
     if dagrun:
-        failed_task_ids = [ti.task_id for ti in dagrun.get_task_instances() if ti.state == 'failed']
+        task_instances = TaskInstance.get_task_instances(dagrun.get_run(session=None))
+        failed_task_ids = [ti.task_id for ti in task_instances if ti.state == 'failed']
         if failed_task_ids:
             for task_id in failed_task_ids:
                 dagrun.dag.clear(
