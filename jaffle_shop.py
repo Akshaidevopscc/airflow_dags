@@ -1,9 +1,9 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
-from airflow.models import DagRun, TaskInstance  # Import TaskInstance
+from airflow.models import DagRun
 from airflow.utils.session import create_session
-from airflow.utils.state import State  # Import State
+from airflow.utils.state import State
 from datetime import datetime, timedelta
 
 def clear_failed_tasks(target_dag_id, target_dag_run_id):
@@ -16,15 +16,10 @@ def clear_failed_tasks(target_dag_id, target_dag_run_id):
         if not dag_run:
             raise ValueError(f'DAGRun not found for DAG ID {target_dag_id} and Run ID {target_dag_run_id}')
 
-        failed_task_instances = session.query(TaskInstance).filter(
-            TaskInstance.dag_id == target_dag_id,
-            TaskInstance.run_id == target_dag_run_id,
-            TaskInstance.state == State.FAILED
-        ).all()
-        
-        for ti in failed_task_instances:
-            ti.clear()
-            session.add(ti)
+        for ti in dag_run.get_task_instances():
+            if ti.state == State.FAILED:
+                ti.clear()
+                session.commit()
 
 default_args = {
     'owner': 'airflow',
