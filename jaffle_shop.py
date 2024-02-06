@@ -39,19 +39,19 @@ with DAG('clear_upstream_task',
          ) as dag:
     t0 = DummyOperator(
         task_id='t0',
-        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "manual__2024-02-06T13:44:25.854645+00:00")
+        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "scheduled__2024-02-06T13:46:51.401176+00:00")
     )
     t1 = DummyOperator(
         task_id='t1',
-        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "manual__2024-02-06T13:44:25.854645+00:00")
+        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "scheduled__2024-02-06T13:46:51.401176+00:00")
     )
     t2 = DummyOperator(
         task_id='t2',
-        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "manual__2024-02-06T13:44:25.854645+00:00")
+        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "scheduled__2024-02-06T13:46:51.401176+00:00")
     )
     t3 = BashOperator(
         task_id='t3',
         bash_command='exit 123',
-        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "manual__2024-02-06T13:44:25.854645+00:00")
+        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "scheduled__2024-02-06T13:46:51.401176+00:00")
     )
     t0 >> t1 >> t2 >> t3
