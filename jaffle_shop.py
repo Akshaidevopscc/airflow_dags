@@ -34,25 +34,24 @@ default_args = {
 with DAG('clear_upstream_task',
          start_date=datetime(2021, 1, 1),
          max_active_runs=3,
-         schedule_interval=timedelta(minutes=30),
          default_args=default_args,
          catchup=False
          ) as dag:
     t0 = DummyOperator(
         task_id='t0',
-        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "manual", "manual__2024-02-06T13:40:35.029208+00:00")
+        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "manual__2024-02-06T13:44:25.854645+00:00")
     )
     t1 = DummyOperator(
         task_id='t1',
-        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "manual", "manual__2024-02-06T13:40:35.029208+00:00")
+        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "manual__2024-02-06T13:44:25.854645+00:00")
     )
     t2 = DummyOperator(
         task_id='t2',
-        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "manual", "manual__2024-02-06T13:40:35.029208+00:00")
+        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "manual__2024-02-06T13:44:25.854645+00:00")
     )
     t3 = BashOperator(
         task_id='t3',
         bash_command='exit 123',
-        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "manual", "manual__2024-02-06T13:40:35.029208+00:00")
+        on_failure_callback=lambda context: clear_failed_tasks_of_another_dag(context, "clear_upstream_task", "manual__2024-02-06T13:44:25.854645+00:00")
     )
     t0 >> t1 >> t2 >> t3
