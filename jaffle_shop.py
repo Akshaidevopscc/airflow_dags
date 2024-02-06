@@ -62,7 +62,6 @@ with DAG('airflow_dags_akshai',
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:seeds/"]),
         default_args={"retries": 2},
-        on_failure_callback=clear_upstream_task
     )
 
     stg_tg = DbtTaskGroup(
@@ -73,7 +72,6 @@ with DAG('airflow_dags_akshai',
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:models/staging/"]),
         default_args={"retries": 2},
-        on_failure_callback=clear_upstream_task
     )
 
     dbt_tg = BashOperator(
