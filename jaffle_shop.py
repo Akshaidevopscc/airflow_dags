@@ -6,6 +6,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from datetime import datetime, timedelta
+from airflow.models import DagRun
 from pathlib import Path
 
 profile_config = ProfileConfig(
@@ -14,26 +15,33 @@ profile_config = ProfileConfig(
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
 )
 
+def clear_failed_tasks_from_other_dag(dag_id, dag_run_id):
+    dagrun = DagRun.find(dag_id=dag_id, run_id=dag_run_id)
+    if dagrun:
+        failed_task_ids = [ti.task_id for ti in dagrun.get_task_instances() if ti.state == 'failed']
+        if failed_task_ids:
+            for task_id in failed_task_ids:
+                dagrun.dag.clear(
+                    start_date=dagrun.execution_date,
+                    end_date=dagrun.execution_date,
+                    dry_run=False,
+                    only_failed=False,
+                    only_running=False,
+                    include_subdags=True,
+                    include_parentdag=True,
+                    task_ids=[task_id],
+                )
+                print(f"Cleared failed tasks for task {task_id} from DAG {dag_id} with run_id {dag_run_id}")
+        else:
+            print("No failed tasks found in the specified dag run.")
+    else:
+        print(f"No dag run found for dag_id {dag_id} and run_id {dag_run_id}.")
+
 def clear_upstream_task(context):
-    execution_date = context.get("execution_date")
-    dag = context['dag']
-    task_instance = context['task_instance']
-    upstream_task_ids = dag.get_task(task_instance.task_id).upstream_task_ids
-    print(upstream_task_ids)
-    for task_id in upstream_task_ids:
-        dag.clear(
-            start_date=execution_date,
-            end_date=execution_date,
-            dry_run=False,
-            only_failed=False,
-            only_running=False,
-            include_subdags=True,
-            include_parentdag=True,
-            task_ids=[task_id],
-        )
-        print("Cleared upstream tasks for task {}".format(task_id))
-        task_instance.xcom_push(key=f'{task_id}_status', value='no_status')
-        print("****************************************************************************************************")
+    dag_id_to_clear = "airflow_dags_akshai"
+    dag_run_id_to_clear = "manual__2024-02-06T12:44:50.675348+00:00"
+    
+    clear_failed_tasks_from_other_dag(dag_id_to_clear, dag_run_id_to_clear)
 
 default_args = {
     'owner': 'airflow',
