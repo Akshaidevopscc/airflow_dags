@@ -44,7 +44,7 @@ default_args = {
     'retry_delay': timedelta(seconds=5)
 }
 
-with DAG('clear_upstream_task',
+with DAG('airflow_dags_akshai',
          start_date=datetime(2021, 1, 1),
          schedule_interval="0 0 * 1 *",
          max_active_runs=3,
