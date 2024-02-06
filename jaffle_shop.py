@@ -37,7 +37,7 @@ with DAG(
     dag_id="airflow_dags_akshai",
     start_date=datetime(2023, 11, 10),
     schedule_interval="0 0 * 1 *",
-    on_failure_callback=clear_upstream_task,
+    on_failure_callback=clear_upstream_task
 ) as dag:
 
     e1 = EmptyOperator(task_id="pre_dbt")
