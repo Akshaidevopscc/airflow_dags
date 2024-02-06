@@ -11,7 +11,6 @@ def clear_failed_tasks_of_another_dag(context, target_dag_id, target_dag_run_id)
         failed_task_instances = (
             context.get("dag_run").get_task_instances()
             .filter(dag_id=target_dag_id, state='failed')
-            .all()
         )
 
         # Clear the failed task instances
@@ -20,7 +19,7 @@ def clear_failed_tasks_of_another_dag(context, target_dag_id, target_dag_run_id)
             print(f"Cleared failed task instance {task_instance.task_id} of DAG {target_dag_id}, run {target_dag_run_id}")
     except Exception as e:
         print(f"Error clearing failed tasks of DAG run {target_dag_run_id} in DAG {target_dag_id}: {e}")
-#####
+
 
 default_args = {
     'owner': 'airflow',
