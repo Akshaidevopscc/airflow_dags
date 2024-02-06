@@ -8,7 +8,6 @@ def clear_upstream_task(context):
     dag = context['dag']
     task_instance = context['task_instance']
     upstream_task_ids = dag.get_task(task_instance.task_id).upstream_task_ids
-    print('***************************************************************************************************************************')
     print(upstream_task_ids)
     for task_id in upstream_task_ids:
         dag.clear(
