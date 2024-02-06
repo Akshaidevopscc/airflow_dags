@@ -23,7 +23,6 @@ def clear_upstream_task(context):
             include_parentdag=True,
             task_ids=[task_id],
         )
-        print(task_ids)
         print("Cleared upstream tasks for task {}".format(task_id))
         task_instance.xcom_push(key=f'{task_id}_status', value='no_status')
         print("****************************************************************************************************")
@@ -73,6 +72,13 @@ with DAG(
     )
 
     e2 = EmptyOperator(task_id="post_dbt")
+
+    clear_upstream = PythonOperator(
+        task_id='clear_upstream_task',
+        python_callable=clear_upstream_task,
+        provide_context=True,
+        trigger_rule='all_failed'
+    )
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
     e1 >> clear_upstream
