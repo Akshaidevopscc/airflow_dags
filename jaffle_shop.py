@@ -8,8 +8,13 @@ from airflow.models import TaskInstance
 def clear_failed_tasks_of_another_dag(context, target_dag_id, target_dag_run_id):
     try:
         # Find the failed task instances of the target DAG run
+        task_instance_list = context.get("task_instance_list")
+        if task_instance_list is None:
+            print("Task instance list is empty or None.")
+            return
+
         failed_task_instances = [
-            ti for ti in context.get("task_instance_list")
+            ti for ti in task_instance_list
             if ti and ti.dag_id == target_dag_id and ti.execution_date == target_dag_run_id and ti.state == 'failed'
         ]
 
@@ -19,7 +24,7 @@ def clear_failed_tasks_of_another_dag(context, target_dag_id, target_dag_run_id)
             print(f"Cleared failed task instance {task_instance.task_id} of DAG {target_dag_id}, run {target_dag_run_id}")
     except Exception as e:
         print(f"Error clearing failed tasks of DAG run {target_dag_run_id} in DAG {target_dag_id}: {e}")
-#
+
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
