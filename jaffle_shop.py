@@ -35,6 +35,15 @@ def clear_upstream_task(context):
         task_instance.xcom_push(key=f'{task_id}_status', value='no_status')
         print("****************************************************************************************************")
 
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(seconds=5)
+}
+
 with DAG('clear_upstream_task',
          start_date=datetime(2021, 1, 1),
          schedule_interval="0 0 * 1 *",
