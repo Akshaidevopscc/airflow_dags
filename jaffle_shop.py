@@ -29,14 +29,21 @@ def clear_upstream_task(context):
             task_ids=[task_id],
         )
         print("Cleared upstream tasks for task {}".format(task_id))
+        task_instance.xcom_push(key=f'{task_id}_status', value='no_status')
+        print("****************************************************************************************************")
+
+def clear_upstream_on_failure(context):
+    print("One of the tasks failed. Clearing upstream tasks.")
+    clear_upstream_task(context)
 
 with DAG(
     dag_id="airflow_dags_akshai",
     start_date=datetime(2023, 11, 10),
     schedule_interval="0 0 * 1 *",
+    on_failure_callback=clear_upstream_on_failure,
 ) as dag:
 
-    e1 = EmptyOperator(task_id="pre_dbt", on_failure_callback=clear_upstream_task)
+    e1 = EmptyOperator(task_id="pre_dbt")
 
     seeds_tg = DbtTaskGroup(
         group_id="dbt_seeds_group",
@@ -46,7 +53,6 @@ with DAG(
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:seeds/"]),
         default_args={"retries": 2},
-        on_failure_callback=clear_upstream_task
     )
 
     stg_tg = DbtTaskGroup(
@@ -57,7 +63,6 @@ with DAG(
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(select=["path:models/staging/"]),
         default_args={"retries": 2},
-        on_failure_callback=clear_upstream_task
     )
 
     dbt_tg = DbtTaskGroup(
@@ -68,9 +73,11 @@ with DAG(
         execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
         render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
         default_args={"retries": 2},
-        on_failure_callback=clear_upstream_task
     )
 
-    e2 = EmptyOperator(task_id="post_dbt", on_failure_callback=clear_upstream_task)
+    e2 = EmptyOperator(task_id="post_dbt")
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
+
+
+########
