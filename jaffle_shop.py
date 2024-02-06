@@ -39,7 +39,6 @@ with DAG('clear_upstream_task',
          start_date=datetime(2021, 1, 1),
          schedule_interval="0 0 * 1 *",
          max_active_runs=3,
-         schedule_interval=timedelta(minutes=5),
          default_args=default_args,
          catchup=False
          ) as dag:
