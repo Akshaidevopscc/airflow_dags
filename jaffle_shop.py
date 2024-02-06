@@ -1,8 +1,19 @@
+from pendulum import datetime
 from airflow import DAG
+from cosmos import DbtTaskGroup, RenderConfig
+from airflow.operators.empty import EmptyOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
-from airflow.models import DagRun
+from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from datetime import datetime, timedelta
+from pathlib import Path
+from airflow.models import DagRun
+
+profile_config = ProfileConfig(
+    profile_name="jaffle_shop",
+    target_name="dev",
+    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
+)
 
 def clear_failed_tasks(target_dag_id, target_dag_run_id):
     dagruns = DagRun.find(dag_id=target_dag_id, run_id=target_dag_run_id)
@@ -21,25 +32,41 @@ default_args = {
     'retry_delay': timedelta(seconds=5)
 }
 
-with DAG('clear_upstream_task',
+with DAG('airflow_dags_akshai',
          start_date=datetime(2021, 1, 1),
+         schedule_interval="0 0 * 1 *",
          max_active_runs=3,
          default_args=default_args,
          catchup=False
          ) as dag:
-    t0 = DummyOperator(
-        task_id='t0'
+
+    e1 = EmptyOperator(task_id="pre_dbt")
+
+    seeds_tg = DbtTaskGroup(
+        group_id="dbt_seeds_group",
+        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
+        operator_args={"append_env": True},
+        profile_config=profile_config,
+        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
+        render_config=RenderConfig(select=["path:seeds/"]),
+        default_args={"retries": 2},
     )
-    t1 = DummyOperator(
-        task_id='t1'
+
+    stg_tg = DbtTaskGroup(
+        group_id="dbt_stg_group",
+        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
+        operator_args={"append_env": True},
+        profile_config=profile_config,
+        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
+        render_config=RenderConfig(select=["path:models/staging/"]),
+        default_args={"retries": 2},
     )
-    t2 = DummyOperator(
-        task_id='t2'
-    )
-    t3 = BashOperator(
-        task_id='t3',
+
+    dbt_tg = BashOperator(
+        task_id="dbt_final_group",
         bash_command='exit 123',
         on_failure_callback=lambda context: clear_failed_tasks('clear_upstream_task', 'scheduled__2024-02-06T13:46:51.401176+00:00')
-    )
-    t0 >> t1 >> t2 >> t3
-#########################################
+
+    e2 = EmptyOperator(task_id="post_dbt")
+
+    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
