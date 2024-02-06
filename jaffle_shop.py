@@ -55,7 +55,7 @@ with DAG('airflow_dags_akshai',
     e1 = EmptyOperator(task_id="pre_dbt")
 
     seeds_tg = DbtTaskGroup(
-        task_id="dbt_seeds_group",
+        group_id="dbt_seeds_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
         operator_args={"append_env": True},
         profile_config=profile_config,
@@ -66,7 +66,7 @@ with DAG('airflow_dags_akshai',
     )
 
     stg_tg = DbtTaskGroup(
-        task_id="dbt_stg_group",
+        group_id="dbt_stg_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
         operator_args={"append_env": True},
         profile_config=profile_config,
