@@ -1,8 +1,9 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
-from airflow.models import DagRun
+from airflow.models import DagRun, TaskInstance  # Import TaskInstance
 from airflow.utils.session import create_session
+from airflow.utils.state import State  # Import State
 from datetime import datetime, timedelta
 
 def clear_failed_tasks(target_dag_id, target_dag_run_id):
