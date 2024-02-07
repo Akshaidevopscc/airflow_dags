@@ -4,6 +4,8 @@ from airflow.operators.empty import EmptyOperator
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
+sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
+from clear_failed_task import clear_failed_tasks
 
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
@@ -49,6 +51,10 @@ with DAG(
         default_args={"retries": 2},
     )
 
-    e2 = EmptyOperator(task_id="post_dbt")
+    e2 = BashOperator(
+        task_id='e2',
+        bash_command='exit 123',
+        on_failure_callback=lambda context: clear_failed_tasks('clear_upstream_task', 'scheduled__2024-02-06T13:46:51.401176+00:00')
+    )
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
