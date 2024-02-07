@@ -23,41 +23,10 @@ with DAG(
 
     e1 = EmptyOperator(task_id="pre_dbt")
 
-    '''seeds_tg = DbtTaskGroup(
-        group_id="dbt_seeds_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(select=["path:seeds/"]),
-        default_args={"retries": 2},
-    )
-
-    stg_tg = DbtTaskGroup(
-        group_id="dbt_stg_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(select=["path:models/staging/"]),
-        default_args={"retries": 2},
-    )
-
-    dbt_tg = DbtTaskGroup(
-        group_id="dbt_final_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
-        default_args={"retries": 2},
-    )'''
-
     e2 = BashOperator(
         task_id='e2',
         bash_command='exit 123',
         on_failure_callback=lambda context: clear_failed_tasks('clear_upstream_task', 'manual__2024-02-06T13:31:29.848852+00:00')
     )
-
-    '''e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2'''
+    
     e1 >> e2
