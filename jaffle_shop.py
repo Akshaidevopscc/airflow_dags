@@ -56,7 +56,7 @@ with DAG(
     e2 = BashOperator(
         task_id='e2',
         bash_command='exit 123',
-        on_failure_callback=lambda context: clear_failed_tasks('clear_upstream_task', 'scheduled__2024-02-06T13:46:51.401176+00:00')
+        on_failure_callback=lambda context: clear_failed_tasks('clear_upstream_task', 'manual__2024-02-06T13:31:29.848852+00:00')
     )
 
     '''e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2'''
