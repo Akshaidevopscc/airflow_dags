@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
+import sys
+sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
 from clear_failed_task import failed_tasks
 
 default_args = {
