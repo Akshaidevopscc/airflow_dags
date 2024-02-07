@@ -7,7 +7,7 @@ from pathlib import Path
 from airflow.operators.bash_operator import BashOperator
 import sys
 sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
-from clear_failed_task import clear_failed_tasks
+from clear_failed_task import failed_tasks
 
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
@@ -26,7 +26,7 @@ with DAG(
     e2 = BashOperator(
         task_id='e2',
         bash_command='exit 123',
-        on_failure_callback=lambda context: clear_failed_tasks('clear_upstream_task', 'manual__2024-02-06T13:31:29.848852+00:00')
+        on_failure_callback=lambda context: failed_task('clear_upstream_task', 'manual__2024-02-06T13:31:29.848852+00:00')
     )
     
     e1 >> e2
