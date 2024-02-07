@@ -23,7 +23,7 @@ dag = DAG(
 )
 
 def clear_failed_tasks_func():
-    failed_tasks('airflow_dags_akshai', 'manual__2024-02-06T13:31:29.848852+00:00')
+    failed_tasks('snowflake_example', 'manual__2023-12-28T04:19:32.514446+00:00')
 
 clear_failed_task = PythonOperator(
     task_id='clear_failed_task',
