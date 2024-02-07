@@ -14,7 +14,7 @@ default_args = {
 }
 
 dag = DAG(
-    'clear_failed_task_dag',
+    'clear_failed_task',
     default_args=default_args,
     description='DAG to clear failed tasks',
     schedule_interval=timedelta(minutes=1),
