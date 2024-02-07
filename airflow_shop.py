@@ -6,7 +6,7 @@ from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
 
 profile_config = ProfileConfig(
-    profile_name="airflow_shop", 
+    profile_name="jaffle_shop", 
     target_name="dev",
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml", 
 )
