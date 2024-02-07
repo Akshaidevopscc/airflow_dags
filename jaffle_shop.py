@@ -4,6 +4,7 @@ from airflow.operators.empty import EmptyOperator
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
+import sys
 sys.path.append("/appz/home/airflow/dags/airflow_dags_akshai")
 from clear_failed_task import clear_failed_tasks
 
