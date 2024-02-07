@@ -29,7 +29,7 @@ def failed_tasks(target_dag_id, target_dag_run_id):
                     ti.set_state('none')
 
 def clear_failed_tasks_func():
-    failed_tasks('airflow_dags_akshai', 'manual__2024-02-06T13:31:29.848852+00:00')
+    failed_tasks('airflow_dags_akshai', 'manual__2024-02-06T17:51:28.425904+00:00')
 
 clear_failed_task = PythonOperator(
     task_id='clear_failed_task',
