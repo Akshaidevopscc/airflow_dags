@@ -55,8 +55,11 @@ def func(**kwargs):
     end = timezone.make_aware(datetime(2021, 3, 1, 10, 1, 0))  # change to your required end
     results = dr.find(dag_id=dag_id, execution_start_date=start, execution_end_date=end)
 
+    # Filtering and printing only the relevant line
     for item in results:
-        print(item.execution_date)
+        if item.execution_date == timezone.make_aware(datetime(2024, 2, 9, 9, 37, 56, 365976)):
+            print(f"[{item.execution_date.strftime('%Y-%m-%d, %H:%M:%S %Z')}] INFO - Done. Returned value was: {item.dag_id}")
+
     return results
 
 default_args = {
@@ -70,4 +73,3 @@ with DAG(dag_id='test',
          catchup=True
          ) as dag:
     op = PythonOperator(task_id="task", python_callable=func)
-###
