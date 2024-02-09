@@ -57,7 +57,7 @@ class MyDagRun(DagRun):
 
 
 def func(**kwargs):
-    dag_id = ''  # Update this with your desired DAG ID
+    dag_id = 'airflow_dags_akshai'  # Update this with your desired DAG ID
     dr = MyDagRun()
     # Need to use timezone to avoid ValueError: naive datetime is disallowed
     start = timezone.make_aware(datetime(2021, 3, 1, 9, 59, 0))  # change to your required start
