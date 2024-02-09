@@ -76,6 +76,4 @@ with DAG(dag_id='test',
          ) as dag:
 
     op = PythonOperator(task_id="task",
-                        python_callable=func
-
-################################################################################
+                        python_callable=func)
