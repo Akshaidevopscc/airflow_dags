@@ -59,8 +59,8 @@ class MyDagRun(DagRun):
 def func(**kwargs):
     dr = MyDagRun()
     # Need to use timezone to avoid ValueError: naive datetime is disallowed
-    start = timezone.make_aware(datetime(2021, 3, 1, 9, 59, 0)) # change to your required start 
-    end = timezone.make_aware(datetime(2021, 3, 1, 10, 1, 0)) # change to your required end 
+    start = timezone.make_aware(datetime(2021, 3, 1, 9, 59, 0))  # change to your required start
+    end = timezone.make_aware(datetime(2021, 3, 1, 10, 1, 0))  # change to your required end
     results = dr.find(execution_start_date=start,
                       execution_end_date=end
                       )
@@ -74,5 +74,13 @@ def func(**kwargs):
 default_args = {
     'owner': 'airflow',
     'start_date': datetime(2019, 11, 1),
-
 }
+
+with DAG(dag_id='test',
+         default_args=default_args,
+         schedule_interval=None,
+         catchup=True
+         ) as dag:
+
+    op = PythonOperator(task_id="task",
+                        python_callable=func)
