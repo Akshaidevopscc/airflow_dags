@@ -57,10 +57,11 @@ def func(**kwargs):
 
     # Filtering and printing only the relevant line
     for item in results:
-        if item.execution_date == timezone.make_aware(datetime(2024, 2, 9, 9, 37, 56, 365976)):
+        if item.execution_date == timezone.make_aware(datetime(2024, 2, 9, 9, 40, 22, 721279)):
             print(f"[{item.execution_date.strftime('%Y-%m-%d, %H:%M:%S %Z')}] INFO - Done. Returned value was: {item.dag_id}")
 
     return results
+
 
 default_args = {
     'owner': 'airflow',
