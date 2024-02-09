@@ -57,20 +57,12 @@ class MyDagRun(DagRun):
 
 
 def func(**kwargs):
-    dag_id = 'airflow_dags_akshai'  # Update this with your desired DAG ID
+    dag_id = 'airflow_dags_akshai'
     dr = MyDagRun()
-    # Need to use timezone to avoid ValueError: naive datetime is disallowed
-    start = timezone.make_aware(datetime(2021, 3, 1, 9, 59, 0))  # change to your required start
-    end = timezone.make_aware(datetime(2021, 3, 1, 10, 1, 0))  # change to your required end
-    results = dr.find(dag_id=dag_id,
-                      execution_start_date=start,
-                      execution_end_date=end
-                      )
+    results = dr.find(dag_id=dag_id)
 
-    print("Execution dates met criteria are:")
-    for item in results:
-        print(item.execution_date)
-    return results
+    dag_run_ids = [dag_run.run_id for dag_run in results]
+    return dag_run_ids
 
 
 default_args = {
