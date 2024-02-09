@@ -56,7 +56,7 @@ class MyDagRun(DagRun):
 
 
 def func(**kwargs):
-    dag_id = 'snowflake_example'
+    dag_id = 'airflow_dags_akshai'
     dr = MyDagRun()
     results = dr.find(dag_id=dag_id)
 
