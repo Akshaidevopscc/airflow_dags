@@ -1,54 +1,78 @@
-from pendulum import datetime
+from datetime import datetime
+from typing import List, Optional, Union
+
 from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from cosmos import DbtTaskGroup, RenderConfig
-from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
-from pathlib import Path
+from airflow.models.dagrun import DagRun
+from airflow.operators.python_operator import PythonOperator
+from airflow.utils import timezone
+from airflow.utils.db import provide_session
+from sqlalchemy.orm.session import Session
 
-profile_config = ProfileConfig(
-    profile_name="jaffle_shop",
-    target_name="dev",
-    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
-)
 
-with DAG(
-    dag_id="airflow_dags_akshai",
-    start_date=datetime(2023, 11, 10),
-    schedule_interval="0 0 * 1 *",
-) as dag:
+class MyDagRun(DagRun):
 
-    e1 = EmptyOperator(task_id="pre_dbt")
+    @staticmethod
+    @provide_session
+    def find(
+        dag_id: Optional[Union[str, List[str]]] = None,
+        run_id: Optional[str] = None,
+        execution_date: Optional[datetime] = None,
+        state: Optional[str] = None,
+        external_trigger: Optional[bool] = None,
+        no_backfills: bool = False,
+        session: Session = None,
+        execution_start_date: Optional[datetime] = None,
+        execution_end_date: Optional[datetime] = None,
+    ) -> List["DagRun"]:
 
-    seeds_tg = DbtTaskGroup(
-        group_id="dbt_seeds_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(select=["path:seeds/"]),
-        default_args={"retries": 2},
-    )
+        DR = MyDagRun
 
-    stg_tg = DbtTaskGroup(
-        group_id="dbt_stg_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(select=["path:models/staging/"]),
-        default_args={"retries": 2},
-    )
+        qry = session.query(DR)
+        dag_ids = [dag_id] if isinstance(dag_id, str) else dag_id
+        if dag_ids:
+            qry = qry.filter(DR.dag_id.in_(dag_ids))
+        if run_id:
+            qry = qry.filter(DR.run_id == run_id)
+        if execution_date:
+            if isinstance(execution_date, list):
+                qry = qry.filter(DR.execution_date.in_(execution_date))
+            else:
+                qry = qry.filter(DR.execution_date == execution_date)
+        if execution_start_date and execution_end_date:
+            qry = qry.filter(DR.execution_date.between(execution_start_date, execution_end_date))
+        elif execution_start_date:
+            qry = qry.filter(DR.execution_date >= execution_start_date)
+        elif execution_end_date:
+            qry = qry.filter(DR.execution_date <= execution_end_date)
+        if state:
+            qry = qry.filter(DR.state == state)
+        if external_trigger is not None:
+            qry = qry.filter(DR.external_trigger == external_trigger)
+        if no_backfills:
+            # in order to prevent a circular dependency
+            from airflow.jobs import BackfillJob
+            qry = qry.filter(DR.run_id.notlike(BackfillJob.ID_PREFIX + '%'))
 
-    dbt_tg = DbtTaskGroup(
-        group_id="dbt_final_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
-        default_args={"retries": 2},
-    )
+        return qry.order_by(DR.execution_date).all()
 
-    e2 = EmptyOperator(task_id="post_dbt")
 
-    e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
+def func(**kwargs):
+    dr = MyDagRun()
+    # Need to use timezone to avoid ValueError: naive datetime is disallowed
+    start = timezone.make_aware(datetime(2021, 3, 1, 9, 59, 0)) # change to your required start 
+    end = timezone.make_aware(datetime(2021, 3, 1, 10, 1, 0)) # change to your required end 
+    results = dr.find(execution_start_date=start,
+                      execution_end_date=end
+                      )
+
+    print("Execution dates met criteria are:")
+    for item in results:
+        print(item.execution_date)
+    return results
+
+
+default_args = {
+    'owner': 'airflow',
+    'start_date': datetime(2019, 11, 1),
+
+}
