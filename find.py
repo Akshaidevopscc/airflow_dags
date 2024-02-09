@@ -7,7 +7,9 @@ from airflow.utils import timezone
 from airflow.utils.db import provide_session
 from sqlalchemy.orm.session import Session
 
+
 class MyDagRun(DagRun):
+
     @staticmethod
     @provide_session
     def find(
@@ -21,7 +23,9 @@ class MyDagRun(DagRun):
         execution_start_date: Optional[datetime] = None,
         execution_end_date: Optional[datetime] = None,
     ) -> List["DagRun"]:
+
         DR = MyDagRun
+
         qry = session.query(DR)
         dag_ids = [dag_id] if isinstance(dag_id, str) else dag_id
         if dag_ids:
@@ -44,23 +48,20 @@ class MyDagRun(DagRun):
         if external_trigger is not None:
             qry = qry.filter(DR.external_trigger == external_trigger)
         if no_backfills:
+            # in order to prevent a circular dependency
             from airflow.jobs import BackfillJob
             qry = qry.filter(DR.run_id.notlike(BackfillJob.ID_PREFIX + '%'))
+
         return qry.order_by(DR.execution_date).all()
 
+
 def func(**kwargs):
-    dag_id = 'airflow_dags_akshai'  # Update this with your desired DAG ID
+    dag_id = 'airflow_dags_akshai'
     dr = MyDagRun()
-    start = timezone.make_aware(datetime(2021, 3, 1, 9, 59, 0))  # change to your required start
-    end = timezone.make_aware(datetime(2021, 3, 1, 10, 1, 0))  # change to your required end
-    results = dr.find(dag_id=dag_id, execution_start_date=start, execution_end_date=end)
+    results = dr.find(dag_id=dag_id)
 
-    # Filtering and printing only the relevant line
-    for item in results:
-        if item.execution_date == timezone.make_aware(datetime(2024, 2, 9, 9, 40, 22, 721279)):
-            print(f"[{item.execution_date.strftime('%Y-%m-%d, %H:%M:%S %Z')}] INFO - Done. Returned value was: {item.dag_id}")
-
-    return results
+    dag_run_ids = [dag_run.run_id for dag_run in results]
+    return dag_run_ids
 
 
 default_args = {
@@ -73,4 +74,7 @@ with DAG(dag_id='test',
          schedule_interval=None,
          catchup=True
          ) as dag:
-    op = PythonOperator(task_id="task", python_callable=func)
+
+    op = PythonOperator(task_id="task",
+                        python_callable=func
+#
