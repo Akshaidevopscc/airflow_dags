@@ -1,4 +1,3 @@
-#######
 from datetime import datetime
 from typing import List, Optional, Union
 from airflow import DAG
@@ -7,8 +6,6 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.utils import timezone
 from airflow.utils.db import provide_session
 from sqlalchemy.orm.session import Session
-
-# Importing the necessary modules from the previous snippet
 from airflow.models import DagRun
 from airflow.models.taskinstance import TaskInstance
 
@@ -58,7 +55,6 @@ class MyDagRun(DagRun):
 
         return qry.order_by(DR.execution_date).all()
 
-# Function to clear failed tasks
 def clear_failed_tasks(target_dag_id, target_dag_run_id):
     dagruns = DagRun.find(dag_id=target_dag_id, run_id=target_dag_run_id)
     if dagruns:
@@ -66,8 +62,7 @@ def clear_failed_tasks(target_dag_id, target_dag_run_id):
             for ti in dagrun.get_task_instances():
                 if ti.state == 'failed':
                     ti.set_state('none')
-
-# Function to retrieve dag run IDs and clear failed tasks
+                    
 def func(**kwargs):
     dag_id = 'airflow_dags_akshai'
     dr = MyDagRun()
@@ -75,7 +70,6 @@ def func(**kwargs):
 
     dag_run_ids = [dag_run.run_id for dag_run in results]
 
-    # Loop through dag run IDs and clear failed tasks
     for run_id in dag_run_ids:
         clear_failed_tasks(dag_id, run_id)
 
