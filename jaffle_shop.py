@@ -16,6 +16,6 @@ with DAG(
 
     e3 = EmptyOperator(task_id="dbt_tg")
     
-    e4 = EmptyOperator(task_id="post_dbt")
+    e5 = EmptyOperator(task_id="post_dbt")
 
-    e1 >> e2 >> e3 >> e4
+    e1 >> e2 >> e3 >> e4 >> e5
