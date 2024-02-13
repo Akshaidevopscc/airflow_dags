@@ -62,7 +62,7 @@ def clear_failed_tasks(target_dag_id, target_dag_run_id):
                     ti.set_state('none')
 
 def func(**kwargs):
-    dag_id = 'airflow_dags_akshai'
+    dag_id = 'jaffle_shop'
     dr = MyDagRun()
     results = dr.find(dag_id=dag_id)
     dag_run_ids = [dag_run.run_id for dag_run in results]
