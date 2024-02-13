@@ -12,7 +12,7 @@ with DAG(
 
     e2 = EmptyOperator(task_id="seed_tg")
 
-    e3 = EmptyOperator(task_id="stg_tg")
+    e4 = EmptyOperator(task_id="stg_tg")
 
     e3 = EmptyOperator(task_id="dbt_tg")
     
