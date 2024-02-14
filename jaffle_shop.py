@@ -12,7 +12,7 @@ profile_config = ProfileConfig(
 )
 
 with DAG(
-    dag_id="airflow_dags_akshai",
+    dag_id="jaffle_shop",
     start_date=datetime(2023, 11, 10),
 ) as dag:
 
