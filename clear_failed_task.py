@@ -6,6 +6,8 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.utils import timezone
 from airflow.utils.db import provide_session
 from sqlalchemy.orm.session import Session
+
+# Importing the necessary modules from the previous snippet
 from airflow.models import DagRun
 from airflow.models.taskinstance import TaskInstance
 
@@ -49,10 +51,13 @@ class MyDagRun(DagRun):
         if external_trigger is not None:
             qry = qry.filter(DR.external_trigger == external_trigger)
         if no_backfills:
+            # in order to prevent a circular dependency
             from airflow.jobs import BackfillJob
             qry = qry.filter(DR.run_id.notlike(BackfillJob.ID_PREFIX + '%'))
+
         return qry.order_by(DR.execution_date).all()
 
+# Function to clear failed tasks
 def clear_failed_tasks(target_dag_id, target_dag_run_id):
     dagruns = DagRun.find(dag_id=target_dag_id, run_id=target_dag_run_id)
     if dagruns:
@@ -61,13 +66,18 @@ def clear_failed_tasks(target_dag_id, target_dag_run_id):
                 if ti.state == 'failed':
                     ti.set_state('none')
 
+# Function to retrieve dag run IDs and clear failed tasks
 def func(**kwargs):
-    dag_id = 'jaffle_shop'
+    dag_id = 'airflow_dags_akshai'
     dr = MyDagRun()
     results = dr.find(dag_id=dag_id)
+
     dag_run_ids = [dag_run.run_id for dag_run in results]
+
+    # Loop through dag run IDs and clear failed tasks
     for run_id in dag_run_ids:
         clear_failed_tasks(dag_id, run_id)
+
     return dag_run_ids
 
 default_args = {
@@ -75,7 +85,7 @@ default_args = {
     'start_date': datetime(2019, 11, 1),
 }
 
-with DAG(dag_id='clear_failed_task',
+with DAG(dag_id='test',
          default_args=default_args,
          schedule_interval=None,
          catchup=True
