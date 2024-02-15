@@ -68,7 +68,7 @@ def clear_failed_tasks(target_dag_id, target_dag_run_id):
 
 # Function to retrieve dag run IDs and clear failed tasks
 def func(**kwargs):
-    dag_id = 'airflow_dags_akshai'
+    dag_id = 'jaffle_shop'
     dr = MyDagRun()
     results = dr.find(dag_id=dag_id)
 
@@ -85,7 +85,7 @@ default_args = {
     'start_date': datetime(2019, 11, 1),
 }
 
-with DAG(dag_id='test',
+with DAG(dag_id='clear_failed_task',
          default_args=default_args,
          schedule_interval=None,
          catchup=True
