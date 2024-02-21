@@ -77,8 +77,8 @@ default_args = {
 
 with DAG(dag_id='clear_failed_task',
          default_args=default_args,
-         schedule_interval=None,
-         catchup=True
+         schedule=None,
+         catchup=False
          ) as dag:
 
     op = PythonOperator(task_id="task",
