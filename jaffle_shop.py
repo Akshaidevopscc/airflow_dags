@@ -5,14 +5,21 @@ from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
 
+dbt_vars = {
+    "my_dbt_var": "my_value",
+    "start_time": "{{ data_interval_start.strftime('%Y%m%d%H%M%S') }}",
+    "end_time": "{{ data_interval_end.strftime('%Y%m%d%H%M%S') }}",
+}
+
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
     target_name="dev",
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
+    dbt_vars=dbt_vars,
 )
 
 with DAG(
-    dag_id="jaffle_shop_test",
+    dag_id="env",
     start_date=datetime(2023, 11, 10),
     schedule=None,
     catchup=False,
