@@ -14,6 +14,8 @@ profile_config = ProfileConfig(
 with DAG(
     dag_id="jaffle_shop_test",
     start_date=datetime(2023, 11, 10),
+    schedule=None,
+    catchup=False,
 ) as dag:
 
     e1 = EmptyOperator(task_id="pre_dbt")
