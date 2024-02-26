@@ -1,20 +1,21 @@
 from pendulum import datetime
-from airflow.decorators import dag
-from airflow.operators.bash import BashOperator
+from airflow import DAG
+from airflow.operators.bash import BashOperator  
 from airflow.models import Variable
-
-AIRFLOW_USER = "airflow"
-POSTGRES_TEST_PASSWORD = Variable.get("AIRFLOW_POSTGRES_TEST_PASSWORD")
 
 PATH_TO_DBT_PROJECT = "/appz/home/airflow/dags/dbt/jaffle_shop"
 PATH_TO_DBT_VENV = "/dbt_venv/bin/dbt"
 
-@dag(
-    start_date=datetime(2023, 3, 23),
-    schedule_interval=None,
+AIRFLOW_USER = "airflow"
+POSTGRES_TEST_PASSWORD = Variable.get("AIRFLOW_POSTGRES_TEST_PASSWORD")
+
+with DAG(
+    dag_id="doc",
+    start_date=datetime(2023, 11, 10),
+    schedule_interval=None, 
     catchup=False,
-)
-def simple_dbt_dag():
+) as dag:
+
     dbt_generate_docs = BashOperator(
         task_id="dbt_generate_docs",
         bash_command=f"{PATH_TO_DBT_VENV} docs generate",
@@ -38,5 +39,3 @@ def simple_dbt_dag():
     )
 
     dbt_generate_docs >> dbt_serve_docs
-
-simple_dbt_dag()
