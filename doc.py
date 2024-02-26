@@ -11,14 +11,14 @@ PATH_TO_DBT_VENV = "/dbt_venv/bin/dbt"
 
 @dag(
     start_date=datetime(2023, 3, 23),
-    schedule_interval=None,  
+    schedule_interval=None,  # Set this to your desired schedule
     catchup=False,
-    tags=['dbt']  
+    tags=['dbt']  # Optional: You can add tags to categorize your DAGs
 )
 def simple_dbt_dag():
-    dbt_run = BashOperator(
-        task_id="dbt_run",
-        bash_command=f"{PATH_TO_DBT_VENV} run",
+    dbt_generate_docs = BashOperator(
+        task_id="dbt_generate_docs",
+        bash_command=f"{PATH_TO_DBT_VENV} docs generate",
         env={
             "PATH_TO_DBT_VENV": PATH_TO_DBT_VENV,
             "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
@@ -26,5 +26,18 @@ def simple_dbt_dag():
         },
         cwd=PATH_TO_DBT_PROJECT,
     )
+
+    dbt_serve_docs = BashOperator(
+        task_id="dbt_serve_docs",
+        bash_command=f"{PATH_TO_DBT_VENV} docs serve",
+        env={
+            "PATH_TO_DBT_VENV": PATH_TO_DBT_VENV,
+            "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
+            "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD
+        },
+        cwd=PATH_TO_DBT_PROJECT,
+    )
+
+    dbt_generate_docs >> dbt_serve_docs
 
 simple_dbt_dag()
