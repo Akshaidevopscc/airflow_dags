@@ -18,7 +18,7 @@ with DAG(
 
     dbt_generate_docs = BashOperator(
         task_id="dbt_generate_docs",
-        bash_command=f"{PATH_TO_DBT_PROJECT} docs generate",
+        bash_command=f"{PATH_TO_DBT_VENV} docs generate",
         env={
             "PATH_TO_DBT_VENV": PATH_TO_DBT_VENV,
             "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
@@ -29,7 +29,7 @@ with DAG(
 
     dbt_serve_docs = BashOperator(
         task_id="dbt_serve_docs",
-        bash_command=f"{PATH_TO_DBT_PROJECT} docs serve --port 9090 &",
+        bash_command=f"{PATH_TO_DBT_VENV} docs serve --port 9090 &",
         env={
             "PATH_TO_DBT_VENV": PATH_TO_DBT_VENV,
             "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
