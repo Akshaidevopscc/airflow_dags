@@ -28,13 +28,14 @@ def simple_dbt_dag():
 
     dbt_serve_docs = BashOperator(
         task_id="dbt_serve_docs",
-        bash_command=f"{PATH_TO_DBT_VENV} docs serve",
+        bash_command=f"{PATH_TO_DBT_VENV} docs serve &",  
         env={
             "PATH_TO_DBT_VENV": PATH_TO_DBT_VENV,
             "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
             "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD
         },
         cwd=PATH_TO_DBT_PROJECT,
+        timeout=0,  
     )
 
     dbt_generate_docs >> dbt_serve_docs
