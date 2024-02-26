@@ -17,7 +17,7 @@ profile_config = ProfileConfig(
 )
 
 with DAG(
-    dag_id="env_test",
+    dag_id="doc_generate",
     start_date=datetime(2023, 11, 10),
     schedule=None,
     catchup=False,
