@@ -12,7 +12,7 @@ profile_config = ProfileConfig(
 )
 
 with DAG(
-    dag_id="jaffle_shop_test",
+    dag_id="doc",
     start_date=datetime(2023, 11, 10),
     schedule=None,
     catchup=False,
@@ -69,5 +69,3 @@ with DAG(
     )
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> dbt_doc_generate >> dbt_doc_serve >> e2
-
-###
