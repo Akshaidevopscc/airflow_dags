@@ -64,7 +64,6 @@ with DAG(
         default_args={"retries": 2},
     )
     
-    # New task for generating dbt documentation
     dbt_generate_docs = BashOperator(
         task_id="dbt_generate_docs",
         bash_command=f"{dbt_executable_path} docs generate",
