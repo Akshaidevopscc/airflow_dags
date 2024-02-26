@@ -16,12 +16,18 @@ with DAG(
     catchup=False,
 ) as dag:
 
+    create_project_dir = BashOperator(
+        task_id="create_project_dir",
+        bash_command=f"mkdir -p {PATH_TO_DBT_PROJECT}",
+    )
+
     dbt_init = BashOperator(
         task_id="dbt_init",
-        bash_command=f"{PATH_TO_DBT_VENV} init {PATH_TO_DBT_PROJECT}",
+        bash_command=f"{PATH_TO_DBT_VENV} init .",
         env={
             "PATH_TO_DBT_VENV": PATH_TO_DBT_VENV,
         },
+        cwd=PATH_TO_DBT_PROJECT,
     )
 
     dbt_generate_docs = BashOperator(
@@ -46,4 +52,4 @@ with DAG(
         cwd=PATH_TO_DBT_PROJECT,
     )
 
-    dbt_init >> dbt_generate_docs >> dbt_serve_docs
+    create_project_dir >> dbt_init >> dbt_generate_docs >> dbt_serve_docs
