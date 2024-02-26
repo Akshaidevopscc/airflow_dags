@@ -1,71 +1,42 @@
 from pendulum import datetime
-from airflow import DAG
+from airflow.decorators import dag
 from airflow.operators.bash import BashOperator
-from cosmos import DbtTaskGroup, RenderConfig
-from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
-from pathlib import Path
+from airflow.models import Variable
 
-profile_config = ProfileConfig(
-    profile_name="jaffle_shop",
-    target_name="dev",
-    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
-)
+AIRFLOW_USER = "airflow"
+POSTGRES_TEST_PASSWORD = Variable.get("AIRFLOW_POSTGRES_TEST_PASSWORD")
 
-with DAG(
-    dag_id="doc",
-    start_date=datetime(2023, 11, 10),
-    schedule=None,
+PATH_TO_DBT_PROJECT = "/appz/home/airflow/dags/dbt/jaffle_shop"
+PATH_TO_DBT_VENV = "/dbt_venv/bin/dbt"
+
+@dag(
+    start_date=datetime(2023, 3, 23),
+    schedule_interval=None,
     catchup=False,
-) as dag:
-
-    e1 = BashOperator(
-        task_id="pre_dbt",
-        bash_command="echo 'Pre-DBT tasks'",
+)
+def simple_dbt_dag():
+    dbt_generate_docs = BashOperator(
+        task_id="dbt_generate_docs",
+        bash_command=f"{PATH_TO_DBT_VENV} docs generate",
+        env={
+            "PATH_TO_DBT_VENV": PATH_TO_DBT_VENV,
+            "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
+            "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD
+        },
+        cwd=PATH_TO_DBT_PROJECT,
     )
 
-    seeds_tg = DbtTaskGroup(
-        group_id="dbt_seeds_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(select=["path:seeds/"]),
-        default_args={"retries": 2},
+    dbt_serve_docs = BashOperator(
+        task_id="dbt_serve_docs",
+        bash_command=f"{PATH_TO_DBT_VENV} docs serve",
+        env={
+            "PATH_TO_DBT_VENV": PATH_TO_DBT_VENV,
+            "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
+            "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD
+        },
+        cwd=PATH_TO_DBT_PROJECT,
     )
 
-    stg_tg = DbtTaskGroup(
-        group_id="dbt_stg_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(select=["path:models/staging/"]),
-        default_args={"retries": 2},
-    )
+    dbt_generate_docs >> dbt_serve_docs
 
-    dbt_tg = DbtTaskGroup(
-        group_id="dbt_final_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
-        render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
-        default_args={"retries": 2},
-    )
-
-    dbt_doc_generate = BashOperator(
-        task_id="dbt_doc_generate",
-        bash_command="/dbt_venv/bin/dbt docs generate",
-    )
-
-    dbt_doc_serve = BashOperator(
-        task_id="dbt_doc_serve",
-        bash_command="/dbt_venv/bin/dbt docs serve",
-    )
-
-    e2 = BashOperator(
-        task_id="post_dbt",
-        bash_command="echo 'Post-DBT tasks'",
-    )
-
-    e1 >> seeds_tg >> stg_tg >> dbt_tg >> dbt_doc_generate >> dbt_doc_serve >> e2
+simple_dbt_dag()
