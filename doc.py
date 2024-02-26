@@ -16,23 +16,9 @@ with DAG(
     catchup=False,
 ) as dag:
 
-    create_project_dir = BashOperator(
-        task_id="create_project_dir",
-        bash_command=f"mkdir -p {PATH_TO_DBT_PROJECT}",
-    )
-
-    dbt_init = BashOperator(
-        task_id="dbt_init",
-        bash_command=f"{PATH_TO_DBT_VENV} init .",
-        env={
-            "PATH_TO_DBT_VENV": PATH_TO_DBT_VENV,
-        },
-        cwd=PATH_TO_DBT_PROJECT,
-    )
-
     dbt_generate_docs = BashOperator(
         task_id="dbt_generate_docs",
-        bash_command=f"{PATH_TO_DBT_VENV} docs generate",
+        bash_command=f"{PATH_TO_DBT_PROJECT} docs generate",
         env={
             "PATH_TO_DBT_VENV": PATH_TO_DBT_VENV,
             "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
@@ -43,7 +29,7 @@ with DAG(
 
     dbt_serve_docs = BashOperator(
         task_id="dbt_serve_docs",
-        bash_command=f"{PATH_TO_DBT_VENV} docs serve --port 9090 &",
+        bash_command=f"{PATH_TO_DBT_PROJECT} docs serve --port 9090 &",
         env={
             "PATH_TO_DBT_VENV": PATH_TO_DBT_VENV,
             "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
@@ -52,4 +38,4 @@ with DAG(
         cwd=PATH_TO_DBT_PROJECT,
     )
 
-    create_project_dir >> dbt_init >> dbt_generate_docs >> dbt_serve_docs
+    dbt_generate_docs >> dbt_serve_docs
