@@ -7,12 +7,6 @@ from pathlib import Path
 AIRFLOW_USER = "airflow"
 POSTGRES_TEST_PASSWORD = Variable.get("AIRFLOW_POSTGRES_TEST_PASSWORD")
 
-profile_config = ProfileConfig(
-    profile_name="jaffle_shop",
-    target_name="dev",
-    profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop_akshai/profiles.yml",
-)
-
 with DAG(
     dag_id="doc_generate",
     start_date=datetime(2023, 11, 10),
