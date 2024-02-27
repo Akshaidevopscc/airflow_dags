@@ -23,46 +23,8 @@ with DAG(
     catchup=False,
 ) as dag:
 
-    e1 = EmptyOperator(task_id="pre_dbt")
-
     project_path = Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")
     dbt_executable_path = "/dbt_venv/bin/dbt"
-
-    seeds_tg = DbtTaskGroup(
-        group_id="dbt_seeds_group",
-        project_config=ProjectConfig(
-            dbt_project_path=project_path,
-            env_vars={"AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER, "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD}
-        ),
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path=dbt_executable_path),
-        render_config=RenderConfig(select=["path:seeds/"]),
-        default_args={"retries": 2},
-    )
-
-    stg_tg = DbtTaskGroup(
-        group_id="dbt_stg_group",
-        project_config=ProjectConfig(
-            dbt_project_path=project_path,
-            env_vars={"AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER, "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD}
-        ),
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path=dbt_executable_path),
-        render_config=RenderConfig(select=["path:models/staging/"]),
-        default_args={"retries": 2},
-    )
-
-    dbt_tg = DbtTaskGroup(
-        group_id="dbt_final_group",
-        project_config=ProjectConfig(
-            dbt_project_path=project_path,
-            env_vars={"AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER, "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD}
-        ),
-        profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path=dbt_executable_path),
-        render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
-        default_args={"retries": 2},
-    )
     
     dbt_generate_docs = BashOperator(
         task_id="dbt_generate_docs",
@@ -76,7 +38,7 @@ with DAG(
 
     dbt_serve_docs = BashOperator(
         task_id="dbt_serve_docs",
-        bash_command=f"{dbt_executable_path} docs serve --port 9090 &",
+        bash_command=f"{dbt_executable_path} docs serve &",
         env={
             "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
             "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD
@@ -84,7 +46,4 @@ with DAG(
         cwd=project_path,
     )
     
-    e2 = EmptyOperator(task_id="post_dbt")
-    
-    e1 >> seeds_tg >> stg_tg >> dbt_tg >> dbt_generate_docs >> dbt_serve_docs >> e2
-
+    dbt_generate_docs >> dbt_serve_docs
