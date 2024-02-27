@@ -1,11 +1,8 @@
 from pendulum import datetime
 from airflow import DAG
-from airflow.operators.empty import EmptyOperator
+from airflow.operators.bash import BashOperator
 from airflow.models import Variable
 from pathlib import Path
-from airflow.operators.bash import BashOperator
-from cosmos import DbtTaskGroup, RenderConfig, LoadMode
-from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 
 AIRFLOW_USER = "airflow"
 POSTGRES_TEST_PASSWORD = Variable.get("AIRFLOW_POSTGRES_TEST_PASSWORD")
