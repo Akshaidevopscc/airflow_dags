@@ -16,9 +16,6 @@ with DAG(
 
     project_path = Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")
     dbt_executable_path = "/dbt_venv/bin/dbt"
-
-    project_name = project_path.parts[-1]
-    base_url = f"http://localhost:8080/{project_name}/"
     
     dbt_generate_docs = BashOperator(
         task_id="dbt_generate_docs",
@@ -32,7 +29,7 @@ with DAG(
 
     dbt_serve_docs = BashOperator(
         task_id="dbt_serve_docs",
-        bash_command=f"{dbt_executable_path} docs serve --base-url {base_url} &",
+        bash_command=f"{dbt_executable_path} docs serve --port 8080 --project-dir {project_path} &",
         env={
             "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
             "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD
