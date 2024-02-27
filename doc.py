@@ -29,7 +29,7 @@ with DAG(
 
     dbt_serve_docs = BashOperator(
         task_id="dbt_serve_docs",
-        bash_command=f"{dbt_executable_path} docs serve --port 8080 --project-dir {project_path} &",
+        bash_command=f"{dbt_executable_path} docs serve &",
         env={
             "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
             "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD
