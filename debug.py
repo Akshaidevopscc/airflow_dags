@@ -19,7 +19,7 @@ with DAG(
     
     install_pip = BashOperator(
         task_id="install_pip",
-        bash_command="apt-get update && apt-get install -y python-pip",
+        bash_command="apt-get install -y python-pip",
     )
 
     debug = BashOperator(
