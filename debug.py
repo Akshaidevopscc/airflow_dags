@@ -18,7 +18,7 @@ with DAG(
     dbt_executable_path = "/dbt_venv/bin/dbt"
     
     debug = BashOperator(
-        task_id="dbt_generate_and_serve_docs",
+        task_id="debug",
         bash_command=f"{dbt_executable_path} pip install dbt-core==1.6.1 && {dbt_executable_path} dbt debug",
         env={
             "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
