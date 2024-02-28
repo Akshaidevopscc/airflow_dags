@@ -19,7 +19,7 @@ with DAG(
     
     debug = BashOperator(
         task_id="dbt_generate_and_serve_docs",
-        bash_command=f"{dbt_executable_path} dbt debug",
+        bash_command=f"{dbt_executable_path} pip install dbt-core==1.6.1 && {dbt_executable_path} dbt debug",
         env={
             "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
             "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD
