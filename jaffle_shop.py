@@ -17,7 +17,7 @@ profile_config = ProfileConfig(
 )
 
 with DAG(
-    dag_id="jaffle_shop_test",
+    dag_id="env_test",
     start_date=datetime(2023, 11, 10),
     schedule=None,
     catchup=False,
@@ -30,34 +30,40 @@ with DAG(
 
     seeds_tg = DbtTaskGroup(
         group_id="dbt_seeds_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
+        project_config=ProjectConfig(
+            dbt_project_path=project_path,
+            env_vars={"AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER, "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD}
+        ),
         profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
+        execution_config=ExecutionConfig(dbt_executable_path=dbt_executable_path),
         render_config=RenderConfig(select=["path:seeds/"]),
         default_args={"retries": 2},
     )
 
     stg_tg = DbtTaskGroup(
         group_id="dbt_stg_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
+        project_config=ProjectConfig(
+            dbt_project_path=project_path,
+            env_vars={"AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER, "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD}
+        ),
         profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
+        execution_config=ExecutionConfig(dbt_executable_path=dbt_executable_path),
         render_config=RenderConfig(select=["path:models/staging/"]),
         default_args={"retries": 2},
     )
 
     dbt_tg = DbtTaskGroup(
         group_id="dbt_final_group",
-        project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
-        operator_args={"append_env": True},
+        project_config=ProjectConfig(
+            dbt_project_path=project_path,
+            env_vars={"AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER, "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD}
+        ),
         profile_config=profile_config,
-        execution_config=ExecutionConfig(dbt_executable_path="/dbt_venv/bin/dbt"),
+        execution_config=ExecutionConfig(dbt_executable_path=dbt_executable_path),
         render_config=RenderConfig(exclude=["path:models/staging", "path:seeds/"]),
         default_args={"retries": 2},
     )
-
+    
     e2 = EmptyOperator(task_id="post_dbt")
 
     e1 >> seeds_tg >> stg_tg >> dbt_tg >> e2
