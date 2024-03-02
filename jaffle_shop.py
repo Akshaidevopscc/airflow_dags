@@ -5,6 +5,9 @@ from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
 
+AIRFLOW_USER = "airflow"
+POSTGRES_TEST_PASSWORD = Variable.get("AIRFLOW_POSTGRES_TEST_PASSWORD")
+
 profile_config = ProfileConfig(
     profile_name="jaffle_shop",
     target_name="dev",
