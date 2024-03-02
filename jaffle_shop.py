@@ -3,6 +3,7 @@ from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
+from airflow.models import Variable
 from pathlib import Path
 
 AIRFLOW_USER = "airflow"
