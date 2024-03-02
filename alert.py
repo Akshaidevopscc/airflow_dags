@@ -56,14 +56,16 @@ class MyDagRun(DagRun):
 def clear_failed_tasks(target_dag_id, target_dag_run_id):
     dagruns = DagRun.find(dag_id=target_dag_id, run_id=target_dag_run_id)
     if dagruns:
+        processed_dag_run_ids = set()
         for dagrun in dagruns:
-            for ti in dagrun.get_task_instances():
-                if ti.state == 'failed':
-                    print(f"The DAG run id '{dagrun.run_id}' changes its state from success to failed.")
-                elif ti.state == 'success':
-                    print(f"The DAG run id '{dagrun.run_id}' changes its state from failed to success.")
-                # Update the state of the task instance
-                ti.set_state('none')
+            if dagrun.run_id not in processed_dag_run_ids:
+                for ti in dagrun.get_task_instances():
+                    if ti.state == 'failed':
+                        print(f"The DAG run id '{dagrun.run_id}' changes its state from success to failed.")
+                    elif ti.state == 'success':
+                        print(f"The DAG run id '{dagrun.run_id}' changes its state from failed to success.")
+                    ti.set_state('none')
+                processed_dag_run_ids.add(dagrun.run_id)
 
 def func(**kwargs):
     dag_id = 'env_test'
