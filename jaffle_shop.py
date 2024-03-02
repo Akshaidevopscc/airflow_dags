@@ -25,6 +25,9 @@ with DAG(
 
     e1 = EmptyOperator(task_id="pre_dbt")
 
+    project_path = Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")
+    dbt_executable_path = "/dbt_venv/bin/dbt"
+
     seeds_tg = DbtTaskGroup(
         group_id="dbt_seeds_group",
         project_config=ProjectConfig(Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")),
