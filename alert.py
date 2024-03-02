@@ -54,7 +54,7 @@ class MyDagRun(DagRun):
         return qry.order_by(DR.execution_date).all()
 
 def func(**kwargs):
-    dag_id = 'jaffle_shop_test'
+    dag_id = 'env_test'
     dr = MyDagRun()
     results = dr.find(dag_id=dag_id)
     dag_run_ids = [dag_run.run_id for dag_run in results]
