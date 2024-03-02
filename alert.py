@@ -54,7 +54,7 @@ class MyDagRun(DagRun):
         return qry.order_by(DR.execution_date).all()
 
 def func(**kwargs):
-    dag_id = 'env_test'
+    dag_id = 'jaffle_shop_test'
     dr = MyDagRun()
     results = dr.find(dag_id=dag_id)
     dag_run_ids = [dag_run.run_id for dag_run in results]
@@ -65,7 +65,7 @@ default_args = {
     'start_date': datetime(2019, 11, 1),
 }
 
-with DAG(dag_id='clear_failed_task',
+with DAG(dag_id='trace',
          default_args=default_args,
          schedule=None,
          catchup=False
