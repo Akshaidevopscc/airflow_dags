@@ -54,10 +54,17 @@ class MyDagRun(DagRun):
         return qry.order_by(DR.execution_date).all()
 
 def func(**kwargs):
-    dag_id = 'jaffle_shop_test'
+    dag_id = 'env_test'
     dr = MyDagRun()
     results = dr.find(dag_id=dag_id)
     dag_run_ids = [dag_run.run_id for dag_run in results]
+    for run_id in dag_run_ids:
+        dagrun = DagRun.find(dag_id=dag_id, run_id=run_id)
+        if dagrun:
+            dagrun_status = dagrun[0].get_state()
+            print(f"DAG Run ID: {run_id}, Status: {dagrun_status}")
+        else:
+            print(f"No DAG run found for ID: {run_id}")
     return dag_run_ids
 
 default_args = {
