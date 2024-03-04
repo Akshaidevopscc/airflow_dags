@@ -58,25 +58,8 @@ def func(**kwargs):
     dr = MyDagRun()
     results = dr.find(dag_id=dag_id)
     dag_run_ids = [dag_run.run_id for dag_run in results]
-    
     for run_id in dag_run_ids:
-        dagrun = DagRun.find(dag_id=dag_id, run_id=run_id)
-        if dagrun:
-            dagrun_status = dagrun[0].get_state()
-            prev_status = None
-            try:
-                prev_status = dagrun[0].previous_status
-            except AttributeError:
-                pass
-            
-            if prev_status and prev_status != dagrun_status:
-                print(f"DAG Run ID: {run_id}, Status Changed from {prev_status} to {dagrun_status}")
-            elif not prev_status:
-                print(f"DAG Run ID: {run_id}, Status: {dagrun_status} (No Previous Status)")
-            else:
-                print(f"DAG Run ID: {run_id}, Status: {dagrun_status}")
-        else:
-            print(f"No DAG run found for ID: {run_id}")
+        clear_failed_tasks(dag_id, run_id)
     return dag_run_ids
 
 default_args = {
@@ -84,7 +67,7 @@ default_args = {
     'start_date': datetime(2019, 11, 1),
 }
 
-with DAG(dag_id='trace',
+with DAG(dag_id='clear_failed_task',
          default_args=default_args,
          schedule=None,
          catchup=False
