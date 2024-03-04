@@ -57,8 +57,12 @@ def func(**kwargs):
     dag_id = 'env_test'
     dr = MyDagRun()
     results = dr.find(dag_id=dag_id)
-    dag_run_ids = [dag_run.run_id for dag_run in results]
-    return dag_run_ids
+    dag_run_states = {}
+    for dag_run in results:
+        if dag_run.run_id not in dag_run_states:
+            dag_run_states[dag_run.run_id] = []
+        dag_run_states[dag_run.run_id].append(dag_run.state)
+    return dag_run_states
 
 default_args = {
     'owner': 'airflow',
