@@ -67,7 +67,7 @@ default_args = {
     'start_date': datetime(2019, 11, 1),
 }
 
-with DAG(dag_id='clear_failed_task',
+with DAG(dag_id='trace',
          default_args=default_args,
          schedule=None,
          catchup=False
