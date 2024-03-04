@@ -58,8 +58,6 @@ def func(**kwargs):
     dr = MyDagRun()
     results = dr.find(dag_id=dag_id)
     dag_run_ids = [dag_run.run_id for dag_run in results]
-    for run_id in dag_run_ids:
-        clear_failed_tasks(dag_id, run_id)
     return dag_run_ids
 
 default_args = {
@@ -67,7 +65,7 @@ default_args = {
     'start_date': datetime(2019, 11, 1),
 }
 
-with DAG(dag_id='trace',
+with DAG(dag_id='clear_failed_task',
          default_args=default_args,
          schedule=None,
          catchup=False
