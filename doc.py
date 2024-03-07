@@ -16,11 +16,10 @@ with DAG(
 
     project_path = Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")
     dbt_executable_path = "/dbt_venv/bin/dbt"
-    output_path = "/appz/home/airflow/docs/"
     
     dbt_generate_docs = BashOperator(
         task_id="dbt_generate_docs",
-        bash_command=f"{dbt_executable_path} docs generate --output {output_path}",
+        bash_command=f"{dbt_executable_path} docs generate --project-dir /appz/home/airflow/docs/",
         env={
             "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
             "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD
@@ -28,4 +27,14 @@ with DAG(
         cwd=project_path,
     )
 
-    dbt_generate_docs
+    dbt_serve_docs = BashOperator(
+        task_id="dbt_serve_docs",
+        bash_command=f"{dbt_executable_path} docs serve --project-dir /appz/home/airflow/docs/ &",
+        env={
+            "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
+            "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD
+        },
+        cwd=project_path,
+    )
+
+    dbt_generate_docs >> dbt_serve_docs
