@@ -7,9 +7,6 @@ from pathlib import Path
 AIRFLOW_USER = "airflow"
 POSTGRES_TEST_PASSWORD = Variable.get("AIRFLOW_POSTGRES_TEST_PASSWORD")
 
-def get_docs_path(dag_id):
-    return f"/appz/home/airflow/docs/{dag_id}"
-
 with DAG(
     dag_id="doc_generate",
     start_date=datetime(2023, 11, 10),
@@ -19,13 +16,11 @@ with DAG(
 
     project_path = Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")
     dbt_executable_path = "/dbt_venv/bin/dbt"
-    
-    dag_id = dag.dag_id
-    docs_path = get_docs_path(dag_id)
-    
-    dbt_generate_and_serve_docs = BashOperator(
-        task_id="dbt_generate_and_serve_docs",
-        bash_command=f"cd {docs_path} && {dbt_executable_path} docs generate && {dbt_executable_path} docs serve &",
+    docs_output_path = "/appz/home/airflow/docs/"  # Specify the desired output path here
+
+    dbt_generate_docs = BashOperator(
+        task_id="dbt_generate_docs",
+        bash_command=f"{dbt_executable_path} docs generate --output {docs_output_path}",
         env={
             "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
             "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD
@@ -33,4 +28,4 @@ with DAG(
         cwd=project_path,
     )
 
-    dbt_generate_and_serve_docs
+    dbt_generate_docs
