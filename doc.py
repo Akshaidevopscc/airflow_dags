@@ -7,14 +7,16 @@ from pathlib import Path
 AIRFLOW_USER = "airflow"
 POSTGRES_TEST_PASSWORD = Variable.get("AIRFLOW_POSTGRES_TEST_PASSWORD")
 
+dag_id = "doc_generate"
+
 with DAG(
-    dag_id="doc_generate",
+    dag_id=dag_id,
     start_date=datetime(2023, 11, 10),
     schedule=None,
     catchup=False,
 ) as dag:
 
-    project_path = Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")
+    project_path = Path(f"/appz/home/airflow/docs/{dag_id}")
     dbt_executable_path = "/dbt_venv/bin/dbt"
     
     dbt_generate_docs = BashOperator(
