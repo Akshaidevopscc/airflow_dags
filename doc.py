@@ -3,6 +3,7 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.models import Variable
 from pathlib import Path
+import os
 
 AIRFLOW_USER = "airflow"
 POSTGRES_TEST_PASSWORD = Variable.get("AIRFLOW_POSTGRES_TEST_PASSWORD")
@@ -19,6 +20,9 @@ with DAG(
     project_path = Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")
     dbt_executable_path = "/dbt_venv/bin/dbt"
     docs_path = f"/appz/home/airflow/docs/{dag_id}"
+    
+    # Create the directory if it doesn't exist
+    os.makedirs(docs_path, exist_ok=True)
     
     dbt_generate_docs = BashOperator(
         task_id="dbt_generate_docs",
