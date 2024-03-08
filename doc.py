@@ -27,14 +27,4 @@ with DAG(
         cwd=project_path,
     )
 
-    dbt_serve_docs = BashOperator(
-        task_id="dbt_serve_docs",
-        bash_command=f"{dbt_executable_path} docs serve &",
-        env={
-            "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
-            "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD
-        },
-        cwd=project_path,
-    )
-
-    dbt_generate_docs >> dbt_serve_docs
+    dbt_generate_docs
