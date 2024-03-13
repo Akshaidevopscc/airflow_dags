@@ -20,10 +20,6 @@ with DAG(
     dbt_generate_docs = BashOperator(
         task_id="dbt_generate_docs",
         bash_command=f"{dbt_executable_path} docs generate --target dev",
-        env={
-            "AIRFLOW_POSTGRES_TEST_USER": AIRFLOW_USER,
-            "AIRFLOW_POSTGRES_TEST_PASSWORD": POSTGRES_TEST_PASSWORD
-        },
         cwd=project_path,
     )
 
