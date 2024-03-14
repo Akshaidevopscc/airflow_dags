@@ -10,12 +10,12 @@ with DAG(
     catchup=False,
 ) as dag:
 
-    project_path = Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")
+    project_path = Path("/appz/home/airflow/dags/dbt/data_engineering")
     dbt_executable_path = "/dbt_venv/bin/dbt"
     
     dbt_generate_docs = BashOperator(
         task_id="dbt_generate_docs",
-        bash_command = f"{dbt_executable_path} docs generate --target dev --project-dir {project_path} --profiles-dir {project_path}"
+        bash_command = f"{dbt_executable_path} docs generate --target dev --project-dir /appz/home/airflow/dags/dbt/data_engineering/nyc_parking_violations/ --profiles-dir /appz/home/airflow/dags/dbt/data_engineering/nyc_parking_violations/"
     )
 
     dbt_generate_docs
