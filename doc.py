@@ -29,7 +29,7 @@ with DAG(
 
     dbt_serve_docs_2 = BashOperator(
         task_id="dbt_serve_docs",
-        bash_command = f"{dbt_executable_path} docs serve --target dev --project-dir /appz/home/airflow/dags/dbt/data_engineering --profiles-dir /appz/home/airflow/dags/dbt/data_engineering &"
+        bash_command = f"{dbt_executable_path} docs serve --target dev --port 9090 --project-dir /appz/home/airflow/dags/dbt/data_engineering --profiles-dir /appz/home/airflow/dags/dbt/data_engineering &"
     )
 
     dbt_generate_docs_1 >> dbt_serve_docs_1 >> dbt_generate_docs_2 >> dbt_serve_docs_2
