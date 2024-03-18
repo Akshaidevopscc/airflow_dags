@@ -29,7 +29,7 @@ def serve_static_files():
     Function to serve static files using Flask Blueprint.
     This function is used as the callable for the PythonOperator.
     """
-    from airflow.plugins_manager import flask_appbuilder
+    from airflow.www.app import flask_appbuilder
     app = flask_appbuilder.get_appbuilder().app
     app.register_blueprint(docs_blueprint)
     app.run(host='0.0.0.0', port=8080, debug=False)  # Adjust port as needed
