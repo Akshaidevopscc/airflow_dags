@@ -1,7 +1,6 @@
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
-from airflow.plugins_manager import AirflowPlugin
-from flask import Blueprint, send_from_directory
+from flask import Flask, Blueprint, send_from_directory
 from datetime import datetime
 
 # Blueprint for the plugin
@@ -20,19 +19,18 @@ def serve_index():
 def custom_static(filename):
     return send_from_directory(docs_blueprint.static_folder, filename)
 
-class StaticDocsPlugin(AirflowPlugin):
-    name = "static_docs_plugin"
-    flask_blueprints = [docs_blueprint]
+class StaticDocsPlugin:
+    def __init__(self):
+        self.app = Flask(__name__)
+        self.app.register_blueprint(docs_blueprint)
 
 def serve_static_files():
     """
     Function to serve static files using Flask Blueprint.
     This function is used as the callable for the PythonOperator.
     """
-    from airflow.www.app import flask_appbuilder
-    app = flask_appbuilder.get_appbuilder().app
-    app.register_blueprint(docs_blueprint)
-    app.run(host='0.0.0.0', port=8080, debug=False)  # Adjust port as needed
+    static_docs_plugin = StaticDocsPlugin()
+    static_docs_plugin.app.run(host='0.0.0.0', port=8080, debug=False)  # Adjust port as needed
 
 # Define the default arguments for the DAG
 default_args = {
@@ -55,3 +53,4 @@ with DAG('my_static_docs_dag',
 
 # Define task dependencies
 serve_static_task
+#####
