@@ -2,18 +2,21 @@ from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.plugins_manager import AirflowPlugin
 from flask import Blueprint, send_from_directory
-import os
 from datetime import datetime
 
 # Blueprint for the plugin
 docs_blueprint = Blueprint(
     'docs_blueprint', __name__,
-    url_prefix='/docs',
+    url_prefix='/docs/jaffle_shop',
     template_folder='templates',
-    static_folder='/appz/home/airflow/docs'
+    static_folder='/appz/home/airflow/docs/jaffle_shop'
 )
 
-@docs_blueprint.route('/jaffle_shop')
+@docs_blueprint.route('/')
+def serve_index():
+    return send_from_directory(docs_blueprint.static_folder, 'index.html')
+
+@docs_blueprint.route('/<path:filename>')
 def custom_static(filename):
     return send_from_directory(docs_blueprint.static_folder, filename)
 
@@ -21,9 +24,15 @@ class StaticDocsPlugin(AirflowPlugin):
     name = "static_docs_plugin"
     flask_blueprints = [docs_blueprint]
 
-def run_my_dag():
-    # Define your tasks here
-    pass
+def serve_static_files():
+    """
+    Function to serve static files using Flask Blueprint.
+    This function is used as the callable for the PythonOperator.
+    """
+    from airflow.plugins_manager import flask_appbuilder
+    app = flask_appbuilder.get_appbuilder().app
+    app.register_blueprint(docs_blueprint)
+    app.run(host='0.0.0.0', port=8080, debug=False)  # Adjust port as needed
 
 # Define the default arguments for the DAG
 default_args = {
@@ -38,11 +47,11 @@ with DAG('my_static_docs_dag',
          schedule_interval=None,  # Set the schedule interval as needed
          catchup=False) as dag:
 
-    # Define tasks
-    run_this = PythonOperator(
-        task_id='run_my_dag_task',
-        python_callable=run_my_dag
+    # Define task to serve static files
+    serve_static_task = PythonOperator(
+        task_id='serve_static_files_task',
+        python_callable=serve_static_files
     )
 
 # Define task dependencies
-run_this
+serve_static_task
