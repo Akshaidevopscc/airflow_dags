@@ -9,18 +9,27 @@ with DAG(
     schedule=None,
     catchup=False,
 ) as dag:
-
-    project_path = Path("/appz/home/airflow/dags/dbt/jaffle_shop_akshai")
+    
     dbt_executable_path = "/dbt_venv/bin/dbt"
     
-    dbt_generate_docs = BashOperator(
+    dbt_generate_docs_1 = BashOperator(
         task_id="dbt_generate_docs",
         bash_command = f"{dbt_executable_path} docs generate --target dev --project-dir /appz/home/airflow/dags/dbt/jaffle_shop_akshai --profiles-dir /appz/home/airflow/dags/dbt/jaffle_shop_akshai"
     )
 
-    dbt_serve_docs = BashOperator(
+    dbt_serve_docs_1 = BashOperator(
         task_id="dbt_serve_docs",
-        bash_command = f"{dbt_executable_path} docs serve --target dev --project-dir /appz/home/airflow/dags/dbt/jaffle_shop_akshai --profiles-dir /appz/home/airflow/dags/dbt/jaffle_shop_akshai"
+        bash_command = f"{dbt_executable_path} docs serve --target dev --project-dir /appz/home/airflow/dags/dbt/jaffle_shop_akshai --profiles-dir /appz/home/airflow/dags/dbt/jaffle_shop_akshai &"
     )
 
-    dbt_generate_docs >> dbt_serve_docs
+    dbt_generate_docs_2 = BashOperator(
+        task_id="dbt_generate_docs",
+        bash_command = f"{dbt_executable_path} docs generate --target dev --project-dir /appz/home/airflow/dags/dbt/data_engineering --profiles-dir /appz/home/airflow/dags/dbt/data_engineering"
+    )
+
+    dbt_serve_docs_2 = BashOperator(
+        task_id="dbt_serve_docs",
+        bash_command = f"{dbt_executable_path} docs serve --target dev --project-dir /appz/home/airflow/dags/dbt/data_engineering --profiles-dir /appz/home/airflow/dags/dbt/data_engineering &"
+    )
+
+    dbt_generate_docs_1 >> dbt_serve_docs_1 >> dbt_generate_docs_2 >> dbt_serve_docs_2
