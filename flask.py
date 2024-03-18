@@ -30,7 +30,7 @@ def serve_static_files():
     This function is used as the callable for the PythonOperator.
     """
     static_docs_plugin = StaticDocsPlugin()
-    static_docs_plugin.app.run(host='0.0.0.0', port=8080, debug=False)  # Adjust port as needed
+    static_docs_plugin.app.run(host='0.0.0.0', port=9090, debug=False)  # Adjust port as needed
 
 # Define the default arguments for the DAG
 default_args = {
@@ -53,4 +53,3 @@ with DAG('my_static_docs_dag',
 
 # Define task dependencies
 serve_static_task
-#####
