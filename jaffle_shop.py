@@ -12,7 +12,7 @@ profile_config = ProfileConfig(
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop/profiles.yml",
 )
 
-dbt_docs_url = "https://mpmathew-test-poc.03907124.lowtouch.cloud/docs/jaffle_shop/index.htmll"  
+dbt_docs_url = "https://mpmathew-test-poc.03907124.lowtouch.cloud/docs/jaffle_shop/index.html"  
 
 with DAG(
     dag_id="jaffle_shop",
