@@ -18,7 +18,7 @@ with DAG(
     dag_id="jaffle_shop",
     start_date=datetime(2023, 11, 10),
     description='An example DAG with a link to DBT Docs',
-    doc_md=f"""### Documentation\nHere is the link to our [DBT Documentation]({dbt_docs_url}).""",
+    doc_md=f"""### Documentation\nHere is the link to your [DBT Documentation]({dbt_docs_url}).""",
 ) as dag:
 
     e1 = EmptyOperator(task_id="pre_dbt")
