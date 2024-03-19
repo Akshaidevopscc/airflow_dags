@@ -1,6 +1,7 @@
 from pendulum import datetime
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
+from airflow.utils.dates import days_ago
 from cosmos import DbtTaskGroup, RenderConfig
 from cosmos.config import ProfileConfig, ProjectConfig, ExecutionConfig
 from pathlib import Path
@@ -11,9 +12,13 @@ profile_config = ProfileConfig(
     profiles_yml_filepath="/appz/home/airflow/dags/dbt/jaffle_shop/profiles.yml",
 )
 
+dbt_docs_url = "https://mpmathew-test-poc.03907124.lowtouch.cloud/docs/jaffle_shop/index.htmll"  
+
 with DAG(
     dag_id="jaffle_shop",
     start_date=datetime(2023, 11, 10),
+    description='An example DAG with a link to DBT Docs',
+    doc_md=f"""### Documentation\nHere is the link to our [DBT Documentation]({dbt_docs_url}).""",
 ) as dag:
 
     e1 = EmptyOperator(task_id="pre_dbt")
