@@ -27,4 +27,3 @@ with DAG(
     )
 
     dbt_generate_docs_1 >> dbt_serve_docs_1
-##############
