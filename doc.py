@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 from pathlib import Path
 
-dbt_docs_url = "https://mpmathew-test-poc.03907124.lowtouch.cloud/docs/jaffle_shop/index.html"
+dbt_docs_url = "http://localhost/docs/jaffle_shop/index.html"
 
 dbt_executable_path = "/dbt_venv/bin/dbt"
 
