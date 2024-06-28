@@ -18,12 +18,12 @@ with DAG(
     
     dbt_generate_docs_1 = BashOperator(
         task_id="dbt_generate_docs_1",
-        bash_command=f"{dbt_executable_path} docs generate --target dev --project-dir /appz/home/airflow/dags/dbt/jaffle_shop_akshai --profiles-dir /appz/home/airflow/dags/dbt/jaffle_shop_akshai"
+        bash_command=f"{dbt_executable_path} docs generate --target dev --project-dir /appz/home/airflow/dags/dbt/jaffle_shop --profiles-dir /appz/home/airflow/dags/dbt/jaffle_shop"
     )
 
     dbt_serve_docs_1 = BashOperator(
         task_id="dbt_serve_docs_1",
-        bash_command=f"{dbt_executable_path} docs serve --target dev --project-dir /appz/home/airflow/dags/dbt/jaffle_shop_akshai --profiles-dir /appz/home/airflow/dags/dbt/jaffle_shop_akshai &"
+        bash_command=f"{dbt_executable_path} docs serve --target dev --project-dir /appz/home/airflow/dags/dbt/jaffle_shop --profiles-dir /appz/home/airflow/dags/dbt/jaffle_shop &"
     )
 
     dbt_generate_docs_1 >> dbt_serve_docs_1
