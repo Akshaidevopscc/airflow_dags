@@ -15,6 +15,7 @@ default_args = {
 dag = DAG(
     'simple_dag',
     default_args=default_args,
+    schedule_interval=None,  # No schedule, run manually
 )
 
 bash_task = BashOperator(
@@ -31,4 +32,5 @@ python_task = PythonOperator(
 )
 
 bash_task >> python_task
+
 
