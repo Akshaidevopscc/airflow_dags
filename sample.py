@@ -15,7 +15,6 @@ default_args = {
 dag = DAG(
     'simple_dag',
     default_args=default_args,
-    schedule_interval='@daily',
 )
 
 bash_task = BashOperator(
