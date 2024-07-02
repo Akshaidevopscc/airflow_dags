@@ -4,7 +4,7 @@ from airflow.operators.bash_operator import BashOperator
 from datetime import datetime
 
 def print_hello():
-    return 'Hello from PythonOperator!'
+    raise Exception('Intentional failure for PythonOperator!')
 
 default_args = {
     'owner': 'airflow',
