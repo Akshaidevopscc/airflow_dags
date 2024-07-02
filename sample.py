@@ -20,14 +20,16 @@ dag = DAG(
 
 bash_task = BashOperator(
     task_id='bash_task',
-    bash_command='echo Hello from BashOperator!',
+    bash_command='exit 1',  # This will make the task fail
     dag=dag,
 )
 
 python_task = PythonOperator(
     task_id='python_task',
     python_callable=print_hello,
+    trigger_rule='all_done',  # This ensures the task runs even if the previous task fails
     dag=dag,
 )
 
 bash_task >> python_task
+
