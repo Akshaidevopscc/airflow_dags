@@ -52,7 +52,7 @@ with DAG(
     dag_id="DailyHealthCheck_v7",
     default_args=default_args,
     start_date=pendulum.datetime(2024, 2, 9, tz="UTC"),
-    schedule_interval="0 9 * * *",  # 1 AM PST
+    schedule_interval=None,  # 1 AM PST
     description="A DAG for generating and serving DBT documentation with a link to DBT DOCS",
     tags=["SAMPLE"],
 ) as dag:
