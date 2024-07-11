@@ -63,7 +63,7 @@ with DAG(
         send_smtp_email_task = PythonOperator(
             task_id='SMTPHookCheck',
             python_callable=send_smtp_email,
-            provide_context=True
+            provide_context=False
         )
 
         email_task = EmailOperator(
