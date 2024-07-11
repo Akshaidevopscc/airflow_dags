@@ -68,7 +68,7 @@ with DAG(
 
         email_task = EmailOperator(
             task_id='EmailOperatorCheck',
-            to='rejith.krishnan@tcw.com',
+            to='asurendran@ecloudcontrol.com',
             subject='Airflow-DEV: Airflow EmailOperator (Task) Check',
             html_content="Date: {{ ds }}",
         )
