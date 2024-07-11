@@ -42,7 +42,7 @@ def send_smtp_email(**context):
 default_args = {
     'owner': 'data_engineering',
     'depends_on_past': False,
-    'email': ['rejith.krishnan@tcw.com'],
+    'email': ['asurendran@ecloudcontrol.com'],
     'email_on_failure': True,
     'email_on_retry': False,
     'retries': 1,
