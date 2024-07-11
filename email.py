@@ -6,6 +6,7 @@ from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.task_group import TaskGroup
 from airflow.providers.smtp.hooks.smtp import SmtpHook
+from airflow.operators.bash_operator import BashOperator
 
 def on_failure_callback(context, SVC_NAME):
     svc = SVC_NAME
@@ -34,7 +35,7 @@ def send_smtp_email(**context):
     smtp_hook = SmtpHook(smtp_conn_id='smtp_primary')
     smtp_hook.get_conn()
     smtp_hook.send_email_smtp(
-        to='rejith.krishnan@tcw.com', 
+        to='asurendran@ecloudcontrol.com', 
         subject=f'Airflow-DEV: <TaskInstance: {dag_id}.{task_id} manual__{execution_date} [failed]>', 
         html_content=f"<p>This email is sent by DAG: {dag_id}, Task: {task_id}, Execution Date: {execution_date}</p>"
     )
@@ -73,6 +74,11 @@ with DAG(
             html_content="Date: {{ ds }}",
         )
 
+    hello_world_task = BashOperator(
+        task_id='hello_world',
+        bash_command='exit 1'
+    )
+
     e2 = EmptyOperator(task_id="post_dbt")
 
-    e1 >> email_tasks >> e2
+    e1 >> email_tasks >> hello_world_task >> e2
