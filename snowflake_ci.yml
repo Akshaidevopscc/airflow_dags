@@ -2,9 +2,7 @@ SNOWFLAKE_CONN_ID: "snowflake_connection"
 SNOWFLAKE_SCHEMA: "TEST_DEV_DB.TEST_SCHEMA"
 OWNER: "sample_owner"
 TAGS:
-  - "mpmathew"
-  - "objects"
-  - "dynamic"
+  - "akshai"
 SCHEMAS:
   - "SCHEMA_A"
   - "SCHEMA_B"
