@@ -3,6 +3,7 @@ SNOWFLAKE_SCHEMA: "TEST_DEV_DB.TEST_SCHEMA"
 OWNER: "sample_owner"
 TAGS:
   - "akshai"
+  - "test"
 SCHEMAS:
   - "SCHEMA_A"
   - "SCHEMA_B"
