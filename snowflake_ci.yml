@@ -1,0 +1,7 @@
+SNOWFLAKE_CONN_ID: "snowflake_connection"
+SNOWFLAKE_SCHEMA: "TEST_DEV_DB.TEST_SCHEMA"
+OWNER: "sample_owner"
+TAGS:
+  - "akshai"
+SCHEMAS:
+  - "SCHEMA_A"
