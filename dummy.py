@@ -38,7 +38,7 @@ def print_message():
     print("🧩 Python operator executed successfully!")
 
 with DAG(
-    dag_id="postgres_auth_chain_check",
+    dag_id="airflow_simulate",
     start_date=datetime(2024, 1, 1),
     schedule_interval=None,
     catchup=False,
