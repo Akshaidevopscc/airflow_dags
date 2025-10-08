@@ -8,7 +8,7 @@ def check_postgres_auth():
     host = "postgres"
     database = "postgres"
     user = os.getenv("AIRFLOW_POSTGRES_USER")
-    password = os.getenv("AIRFLOW_POSTGRES_PASSWORD")
+    password = os.getenv("AIRFLOW_POSTGRES_ERROR_PASSWORD")
 
     try:
         conn = psycopg2.connect(
