@@ -5,6 +5,11 @@ from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from datetime import datetime
 
+def print_env_vars():
+    print("🌍 Environment Variables:")
+    for key, value in os.environ.items():
+        print(f"{key}={value}")
+
 def check_postgres_auth_wrong():
     host = "postgres"
     database = "postgres"
@@ -40,15 +45,21 @@ with DAG(
     tags=["postgres", "auth"],
 ) as dag:
 
+    print_env = PythonOperator(
+        task_id="print_environment_variables",
+        python_callable=print_env_vars,
+    )
+
     fail_auth = PythonOperator(
         task_id="failed_authentication",
         python_callable=check_postgres_auth_wrong,
+        trigger_rule='all_done',
     )
 
     success_auth = PythonOperator(
         task_id="success_authentication",
         python_callable=check_postgres_auth_correct,
-        trigger_rule='all_done',  # runs even if previous failed
+        trigger_rule='all_done',
     )
 
     print_task = PythonOperator(
@@ -63,4 +74,4 @@ with DAG(
         trigger_rule='all_done',
     )
 
-    fail_auth >> success_auth >> print_task >> bash_task
+    print_env >> fail_auth >> success_auth >> print_task >> bash_task
