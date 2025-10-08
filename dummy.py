@@ -40,12 +40,12 @@ with DAG(
 ) as dag:
 
     fail_auth = PythonOperator(
-        task_id="fail_postgres_auth",
+        task_id="failed_authentication",
         python_callable=check_postgres_auth_wrong,
     )
 
     success_auth = PythonOperator(
-        task_id="success_postgres_auth",
+        task_id="success_authentication",
         python_callable=check_postgres_auth_correct,
         trigger_rule='all_done',  # runs even if previous failed
     )
