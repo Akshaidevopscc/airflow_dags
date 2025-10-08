@@ -52,13 +52,13 @@ with DAG(
     )
 
     print_task = PythonOperator(
-        task_id="print_python_message",
+        task_id="python_operator",
         python_callable=print_message,
         trigger_rule='all_done',
     )
 
     bash_task = BashOperator(
-        task_id="print_date_bash",
+        task_id="bash_operator",
         bash_command="echo Date: $(date)",
         trigger_rule='all_done',
     )
