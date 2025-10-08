@@ -2,6 +2,7 @@ import os
 import psycopg2
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
 from datetime import datetime
 
 def check_postgres_auth_wrong():
@@ -28,6 +29,9 @@ def check_postgres_auth_correct():
         password=password
     )
 
+def print_message():
+    print("🧩 Python operator executed successfully!")
+
 with DAG(
     dag_id="postgres_auth_chain_check",
     start_date=datetime(2024, 1, 1),
@@ -47,4 +51,16 @@ with DAG(
         trigger_rule='all_done',  # runs even if previous failed
     )
 
-    fail_auth >> success_auth
+    print_task = PythonOperator(
+        task_id="print_python_message",
+        python_callable=print_message,
+        trigger_rule='all_done',
+    )
+
+    bash_task = BashOperator(
+        task_id="print_date_bash",
+        bash_command="echo Date: $(date)",
+        trigger_rule='all_done',
+    )
+
+    fail_auth >> success_auth >> print_task >> bash_task
