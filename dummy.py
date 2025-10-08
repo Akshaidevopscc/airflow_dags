@@ -28,9 +28,6 @@ def check_postgres_auth_correct():
         password=password
     )
 
-def final_task():
-    print("✅ Final task ran even if previous failed.")
-
 with DAG(
     dag_id="postgres_auth_chain_check",
     start_date=datetime(2024, 1, 1),
@@ -50,10 +47,4 @@ with DAG(
         trigger_rule='all_done',  # runs even if previous failed
     )
 
-    final = PythonOperator(
-        task_id="final_task",
-        python_callable=final_task,
-        trigger_rule='all_done',  # runs regardless of prior status
-    )
-
-    fail_auth >> success_auth >> final
+    fail_auth >> success_auth
