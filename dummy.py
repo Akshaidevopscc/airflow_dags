@@ -46,7 +46,7 @@ with DAG(
 ) as dag:
 
     print_env = PythonOperator(
-        task_id="print_environment_variables",
+        task_id="environment_variables",
         python_callable=print_env_vars,
     )
 
