@@ -28,7 +28,7 @@ def check_postgres_auth():
         raise  # This makes the task fail (and thus the DAG fail)
 
 with DAG(
-    dag_id="postgres_auth_check_env",
+    dag_id="dummy_dag",
     start_date=datetime(2024, 1, 1),
     schedule_interval=None,
     catchup=False,
