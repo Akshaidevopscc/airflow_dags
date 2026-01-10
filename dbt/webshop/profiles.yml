@@ -1,0 +1,23 @@
+ai_lab:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: agentconnector
+      user: "{{env_var('WEBSHOP_POSTGRES_USER')}}"
+      password: "{{env_var('WEBSHOP_POSTGRES_PASSWORD')}}"
+      port: 5432
+      dbname: webshop_v2
+      schema: webshop
+      threads: 6
+elementary:
+  outputs:
+    default:
+      type: "postgres"
+      host: "agentconnector"
+      port: 5432
+      user: "{{env_var('WEBSHOP_POSTGRES_USER')}}"
+      password: "{{env_var('WEBSHOP_POSTGRES_PASSWORD')}}"
+      dbname: "webshop_v2"
+      schema: "webshop_elementary"
+      threads: 6
